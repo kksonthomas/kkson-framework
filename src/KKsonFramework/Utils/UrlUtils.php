@@ -58,7 +58,7 @@ class UrlUtils
         return $url;
     }
 
-    public static function burl(string $relativePath, $prefixSlash = true) {
+    public static function burl(?string $relativePath, $prefixSlash = true) {
         return self::url($relativePath, true, $prefixSlash);
     }
 

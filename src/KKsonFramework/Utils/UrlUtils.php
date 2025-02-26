@@ -36,8 +36,11 @@ class UrlUtils
         return $baseRelativeURI->__toString();
     }
 
-    public static function url(string $relativePath, $fromRoot = false, $prefixSlash = true) : string
+    public static function url(?string $relativePath, $fromRoot = false, $prefixSlash = true) : string
     {
+        if($relativePath == null) {
+            $relativePath = "";
+        }
         // Remove the first slash
         $relativePath = ltrim($relativePath, '/');
         $baseUrl = self::baseUrl($fromRoot, $prefixSlash);

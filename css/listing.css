@@ -1,0 +1,13 @@
+.btnUnIndentSc[style*='display: none'] ~ .btnIndentSc, .btnIndentSc[style*='display: none'] ~ .btnDelSc {
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.card-header.sticky-top {
+    position: sticky !important;
+    top: 55px;
+}
+
+.table th {
+    text-align: left !important;
+}

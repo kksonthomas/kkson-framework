@@ -12,7 +12,7 @@ $crud->addBodyEndHTML(<<< HTML
 <script>
     crud.setAjaxFormCallback(function (result) {
         if (result.class == "danger") {
-            alertError(result.msg);
+            AlertUtils.showError(result.msg);
         } else {
             location.href = result.redirect_url;   
         }

@@ -1204,8 +1204,6 @@ HTML;
     {
         $bean = R::xdispense($this->tableName);
 
-
-
         $result =  $this->saveBean($bean, $data);
 
         if (empty($result->msg)) {
@@ -1215,7 +1213,6 @@ HTML;
         } else {
             $result->ok = false;
             $result->class = "danger";
-
         }
 
         if ($this->afterInsertBean != null) {

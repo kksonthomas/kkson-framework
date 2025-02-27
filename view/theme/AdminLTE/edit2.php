@@ -19,7 +19,7 @@ $crud->addBodyEndHTML(<<< HTML
         $("#msg").html("");
 
         if (result.class == "danger") {
-                alertError(result.msg);
+                AlertUtils.showError(result.msg);
         } else {
                 var box = $(' <div id="msg-callout" class="callout">' + result.msg + '</div>').addClass("callout-" + result.class);
                 $("#msg").html(box)

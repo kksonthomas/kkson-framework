@@ -17,7 +17,7 @@ $crud->addBodyEndHTML(<<< HTML
             msg.removeClass(msg.data("addedClasses"));
         }
         if (result.class === "danger") {
-                alertError(result.msg);
+                AlertUtils.showError(result.msg);
         } else {
             if(result.msg === "Saved.") {
                 result.msg = "已儲存修改。";

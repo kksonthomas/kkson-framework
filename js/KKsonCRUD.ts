@@ -97,7 +97,7 @@ class KKsonCRUD {
                     for (let i = 0; i < self.errorMsgs.length; i++) {
                         str += self.errorMsgs[i] + "\n";
                     }
-                    alertError(str);
+                    AlertUtils.showError("錯誤", str);
                     return false;
                 }
 

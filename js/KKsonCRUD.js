@@ -66,7 +66,7 @@ var KKsonCRUD = /** @class */ (function () {
                     for (var i = 0; i < self.errorMsgs.length; i++) {
                         str += self.errorMsgs[i] + "\n";
                     }
-                    alertError(str);
+                    AlertUtils.showError("錯誤", str);
                     return false;
                 }
                 // Create Form Data from the form.

@@ -8,14 +8,22 @@ class UrlUtils
 {
     public static function baseUrl($fromRoot = false, bool $prefixSlash = true) : string {
         $requestURI = new Stringy($_SERVER["REQUEST_URI"]);
-        $scriptUrl = Stringy::create($_SERVER["SCRIPT_NAME"])->replaceFirst(".php", "");
+        $scriptName = Stringy::create($_SERVER["SCRIPT_NAME"]);
+        $scriptUrl = Stringy::create($_SERVER["SCRIPT_NAME"]);
 
         $containsScriptName = $requestURI->contains($_SERVER["SCRIPT_NAME"]);
-
-        if(!$containsScriptName) {
-            $baseRelativeURI = $requestURI->beforeFirst($scriptUrl)->append("/".pathinfo($_SERVER["SCRIPT_NAME"], PATHINFO_FILENAME));
+        $isScriptNameIndex = $scriptName->endsWith("/index.php");
+        
+        if($isScriptNameIndex) {
+            $scriptUrl = $scriptName->replaceFirst("/index.php", "");
         } else {
-            $baseRelativeURI = $requestURI->beforeFirst($scriptUrl);
+            $scriptUrl = $scriptName->replaceFirst(".php", "");
+        }
+
+        $baseRelativeURI = $requestURI->beforeFirst($scriptUrl);
+        
+        if(!$containsScriptName && !$isScriptNameIndex) {
+            $baseRelativeURI = $baseRelativeURI->append("/".pathinfo($_SERVER["SCRIPT_NAME"], PATHINFO_FILENAME));
         }
 
         if($fromRoot) {

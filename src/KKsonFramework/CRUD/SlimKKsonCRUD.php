@@ -86,12 +86,9 @@ class SlimKKsonCRUD extends KKsonCRUD
 
     /**
      * SlimCRUD constructor.
-     * @param string $groupName
-     * @param string $apiGroupName
-     * @param Slim $slim
      * @throws RedException
      */
-    public function __construct($groupName = "crud", $apiGroupName = "ajax", $slim = null)
+    public function __construct(string $groupName = "crud", string $apiGroupName = "ajax", ?Slim $slim = null)
     {
         if(session_id() == '') {
             session_start();

@@ -2,6 +2,9 @@
 
 namespace KKsonFramework\RedBeanPHP\ModelBase;
 
+use KKsonFramework\RedBeanPHP\ModelBase\BaseModelBase;
+use KKsonFramework\RedBeanPHP\Model\User;
+
 abstract class BaseModel extends BaseModelBase
 {
     /**

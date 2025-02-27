@@ -236,5 +236,11 @@ abstract class BaseModelBase extends SimpleModel
          return R::findCollection(static::_getTableName(), $sql, $data);
     }
 
+    public function old($field) {
+        return $this->getBean()->old($field);
+    }
 
+    public static function findById($id, $findDeleted = false) {
+        return static::load($id, $findDeleted);
+    }
 }

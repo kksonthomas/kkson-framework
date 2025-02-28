@@ -14,28 +14,28 @@ use KKsonFramework\Utils\UrlUtils;
 class FrontendApp extends App
 {
 
-    private static $instance;
-    protected $slim;
+    protected static $instance;
+    protected ?Slim $slim;
     protected $templateEngine;
     /**
      * @var string
      */
-    private $bodyEndHTML;
+    protected $bodyEndHTML;
     /**
      * @var string
      */
-    private $headHTML;
+    protected $headHTML;
 
     protected $allowExt = [
         "jpg", "jpeg", "gif", "png", "apng", "svg", "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "mp4"
     ];
 
 
-    public static function init($slim = null)
+    public static function init($slim = null) : ?static
     {
         if(parent::init()) {
-            self::$instance = new self($slim);
-            return self::$instance;
+            static::$instance = new static($slim);
+            return static::$instance;
         } else {
             return null;
         }
@@ -45,15 +45,12 @@ class FrontendApp extends App
         throw new \Exception("Curd is not allowed in frontend app");
     }
 
-    /**
-     * @return FrontendApp
-     */
-    public static function getInstance()
+    public static function getInstance() :static
     {
         return static::$instance;
     }
 
-    public function __construct($slim = null)
+    public function __construct(Slim $slim = null)
     {
         if($slim) {
             $this->slim = $slim;

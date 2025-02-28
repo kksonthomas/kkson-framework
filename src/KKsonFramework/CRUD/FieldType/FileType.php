@@ -47,7 +47,7 @@ class FileType extends FieldType
         $inputType = $this->inputType;
         $additionalAttr = $this->additionalAttr;
 
-        $uploadURL = UrlUtils::url("kkson-crud/upload/json?fullpath=no", true, false);
+        $uploadURL = UrlUtils::burl("kkson-crud/upload/json?fullpath=no");
         $previewTemplate = $this->getPreviewHTMLTemplate();
         $previewTemplateEncoded = json_encode($previewTemplate);
 

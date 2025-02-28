@@ -25,7 +25,7 @@ class CKEditor extends FieldType
         $required = $this->getRequiredString();
         $crud = $this->field->getCRUD();
 
-        $uploadURL = UrlUtils::url("kkson-crud/upload/json", true, false);
+        $uploadURL = UrlUtils::burl("kkson-crud/upload/json");
 
         $html  = <<< HTML
         <div class="form-group">

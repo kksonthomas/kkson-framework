@@ -49,6 +49,21 @@ $crud->addJavaScriptCode(<<<JS
 
     crud.initListView(isAjax?ajaxOptions:null, ajaxUrl, enableSearch, enableSorting, {
         "scrollX": true,
+        "initComplete": function() {
+            $('.dt-paging').first().appendTo('.ext-dt-paging');
+        },
+        "layout": {
+            "bottomEnd": {
+                "paging": {
+                    "previousNext": false
+                }
+            },
+            "topEnd": {
+                "paging": {
+                    "previousNext": false
+                }
+            },
+        }
     });
     
     $(function () {
@@ -165,6 +180,8 @@ $tableDisplayName = ($crud->getTableDisplayName() != "" ? $crud->getTableDisplay
                         echo $crud->getData("headerButtonHTML");
                     } ?>
                 </h3>
+                <div class="ext-dt-paging float-right">
+                </div>
             </div>
 
             <div class="card-body">

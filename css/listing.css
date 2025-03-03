@@ -11,3 +11,7 @@
 .table th {
     text-align: left !important;
 }
+
+.ext-dt-paging .pagination {
+    margin-bottom: 0;
+}

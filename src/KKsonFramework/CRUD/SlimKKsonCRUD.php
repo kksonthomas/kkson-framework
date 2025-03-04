@@ -232,6 +232,10 @@ HTML;
             Auth::logout();
             $app->redirect(UrlUtils::fullURL("auth/login"));
         });
+
+        $this->slim->response->headers->set("X-Frame-Options", "SAMEORIGIN");
+        $this->slim->response->headers->set("X-Content-Type-Options", "nosniff");
+        $this->slim->response->headers->set("Content-Security-Policy", "script-src 'self'");
     }
 
     private function init($tableName, $routeName, $p1 = null, $p2 = null, $p3 = null, $p4 = null, $p5 = null) {

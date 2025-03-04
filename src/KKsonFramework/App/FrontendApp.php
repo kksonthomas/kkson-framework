@@ -50,7 +50,7 @@ class FrontendApp extends App
         return static::$instance;
     }
 
-    public function __construct(Slim $slim = null)
+    public function __construct(?Slim $slim = null)
     {
         if($slim) {
             $this->slim = $slim;
@@ -62,6 +62,10 @@ class FrontendApp extends App
         if(session_id() == '') {
             session_start();
         }
+
+        $this->slim->response->headers->set("X-Frame-Options", "SAMEORIGIN");
+        $this->slim->response->headers->set("X-Content-Type-Options", "nosniff");
+        $this->slim->response->headers->set("Content-Security-Policy", "script-src 'self'");
     }
 
     public function checkLogin() {

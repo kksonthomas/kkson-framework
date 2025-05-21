@@ -65,7 +65,7 @@ class FrontendApp extends App
 
         $this->slim->response->headers->set("X-Frame-Options", "SAMEORIGIN");
         $this->slim->response->headers->set("X-Content-Type-Options", "nosniff");
-        $this->slim->response->headers->set("Content-Security-Policy", "script-src 'self'");
+        // $this->slim->response->headers->set("Content-Security-Policy", "script-src 'self'");
     }
 
     public function checkLogin() {

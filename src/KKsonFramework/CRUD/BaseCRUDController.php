@@ -19,6 +19,7 @@ abstract class BaseCRUDController
     protected $crud;
 
     protected $baseTableName;
+    protected $shouldEscapeBaseTableName = false;
     protected $baseTableAlias;
 
     private $joinClauses = [];
@@ -221,7 +222,7 @@ abstract class BaseCRUDController
      */
     public function getBaseTableName()
     {
-        return $this->baseTableName;
+        return $this->shouldEscapeBaseTableName ? "`$this->baseTableName`" : $this->baseTableName;
     }
 
     /**
@@ -236,10 +237,11 @@ abstract class BaseCRUDController
      * @param $tableName
      * @param $alias
      */
-    public function setBaseTableName($tableName, $alias): void
+    public function setBaseTableName($tableName, $alias, $shouldEscapeTableName = false): void
     {
         $this->baseTableName = $tableName;
         $this->baseTableAlias = $alias;
+        $this->shouldEscapeBaseTableName = $shouldEscapeTableName;
     }
 
     public function addWhereClause($whereClause, $data = []) {
@@ -288,7 +290,7 @@ abstract class BaseCRUDController
 
     private function getSqlBody() {
         $sql = "
-            FROM $this->baseTableName $this->baseTableAlias
+            FROM {$this->getBaseTableName()} $this->baseTableAlias
             {$this->getJoinClausesSql()}
             WHERE
                 {$this->getWhereClauseSql()}

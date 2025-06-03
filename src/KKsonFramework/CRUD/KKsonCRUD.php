@@ -42,6 +42,7 @@ class KKsonCRUD
     protected $deleteLink = "";
     protected $exportLink = "";
     protected $listViewJSONLink = "";
+    protected ?string $listViewHeaderButtonHtml = null;
 
     /**
      * @var string If it is null, the getter will return getListViewLink() instead of ths var.
@@ -77,12 +78,13 @@ class KKsonCRUD
     /*
      * Flag for controlling the function enable/disable
      */
-    protected $enableListView = true;
-    protected $enableEdit = true;
-    protected $enableDelete = true;
-    protected $enableCreate = true;
-    protected $enableSearch = true;
-    protected $enableSorting = true;
+    protected bool $enableListView = true;
+    protected bool $enableEdit = true;
+    protected bool $enableDelete = true;
+    protected bool $enableCreate = true;
+    protected bool $enableSearch = true;
+    protected bool $enableSorting = true;
+    protected bool $enableExport = true;
 
     /** @var Engine */
     protected $template;
@@ -1515,50 +1517,40 @@ HTML;
         $this->enableEdit = $bool;
     }
 
-    /**
-     * @return boolean
-     */
-    public function isEnabledEdit()
+    public function isEnabledEdit() : bool
     {
         return $this->enableEdit;
     }
 
-    /**
-     * @return boolean
-     */
-    public function isEnabledDelete()
+    public function isEnabledDelete() : bool
     {
         return $this->enableDelete;
     }
 
-    /**
-     * @return boolean
-     */
-    public function isEnabledCreate()
+    public function isEnabledCreate() : bool
     {
         return $this->enableCreate;
     }
 
-    /**
-     * @param boolean $showDelete
-     */
-    public function enableDelete($showDelete)
+    public function isEnabledExport() : bool {
+        return $this->enableExport;
+    }
+
+    public function enableDelete(bool $showDelete)
     {
         $this->enableDelete = $showDelete;
     }
 
-    /**
-     * @param boolean $showCreate
-     */
-    public function enableCreate($showCreate)
+    public function enableCreate(bool $showCreate)
     {
         $this->enableCreate = $showCreate;
     }
 
-    /**
-     * @return string
-     */
-    public function getListViewTemplate()
+    public function enableExport(bool $showExport) {
+        $this->enableExport = $showExport;
+    }
+
+    public function getListViewTemplate() : ?string
     {
         if ($this->listViewTemplate != null)
             return $this->listViewTemplate;
@@ -2108,6 +2100,28 @@ HTML;
     }
 
     public function getExportButtonHtml() {
-        return "<a id=\"btn-kksoncrud-export\" class=\"btn btn-default\" href=\"{$this->getExportLink()}\">{$this->getExportName()}</a>";
+        if($this->isEnabledExport()) {
+            return "<a id=\"btn-kksoncrud-export\" class=\"btn btn-default\" href=\"{$this->getExportLink()}\">{$this->getExportName()}</a>";
+        }
+    }
+
+    public function getListViewRefreshButtonHtml() {
+        return "<button type=\"button\" class=\"btn btn-default btnRefreshDatatable\"><i class=\"fa fa-sync\"></i> 重新整理</button>";
+    }
+
+    public function getListViewHeaderButtonHtml() {
+        if($this->listViewHeaderButtonHtml !== null) {
+            return $this->listViewHeaderButtonHtml;
+        } else {
+            $html = "";
+            $html .= $this->getCreateButtonHtml();
+            $html .= $this->getExportButtonHtml();
+            $html .= $this->getListViewRefreshButtonHtml();
+            return $html;
+        }
+    }
+
+    public function setListViewHeaderButtonHtml(?string $html) {
+        $this->listViewHeaderButtonHtml = $html;
     }
 }

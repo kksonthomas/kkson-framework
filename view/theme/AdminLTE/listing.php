@@ -170,15 +170,14 @@ $tableDisplayName = ($crud->getTableDisplayName() != "" ? $crud->getTableDisplay
         <div class="card card-outline card-primary">
             <div class="card-header bg-white sticky-top">
                 <h3 class="card-title">
-                    <?= $crud->getCreateButtonHtml() ?>
-                    <!-- Export Button -->
-                    <?= $crud->getExportButtonHtml() ?>
-
-                    <button type="button" class="btn btn-default btnRefreshDatatable"><i class="fa fa-sync"></i> 重新整理</button>
-
-                    <?php if ($crud->getData("headerButtonHTML")) {
+                    <? 
+                    echo $crud->getListViewHeaderButtonHtml();
+                    
+                    //legacy support
+                    if ($crud->getData("headerButtonHTML")) {
                         echo $crud->getData("headerButtonHTML");
-                    } ?>
+                    }
+                    ?>
                 </h3>
                 <div class="ext-dt-paging float-right">
                 </div>

@@ -6,7 +6,7 @@ use KKsonFramework\Auth\Auth;
 use KKsonFramework\CRUD\Middleware\CSRFGuard;
 use KKsonFramework\RedBeanPHP\Model\SystemLog;
 use RedBeanPHP\RedException;
-use Slim\Slim;
+use KKsonFramework\Classes\Slim\Slim;
 use KKsonFramework\Utils\UrlUtils;
 use Stringy\Stringy;
 use KKsonFramework\CRUD\FieldType\ReadOnlyUsernameField;

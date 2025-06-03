@@ -4,7 +4,7 @@ namespace KKsonFramework\App\Controller\frontend\route;
 
 use KKsonFramework\Auth\Auth;
 use KKsonFramework\Utils\UrlUtils;
-use Slim\Slim;
+use KKsonFramework\Classes\Slim\Slim;
 
 class AuthFrontendRouteController extends FrontendRouteControllerBase
 {

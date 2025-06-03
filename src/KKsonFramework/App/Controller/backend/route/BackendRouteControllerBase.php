@@ -5,7 +5,7 @@ namespace KKsonFramework\App\Controller\backend\route;
 use KKsonFramework\App\App;
 
 use KKsonFramework\CRUD\SlimKKsonCRUD;
-use Slim\Slim;
+use KKsonFramework\Classes\Slim\Slim;
 
 class BackendRouteControllerBase
 {

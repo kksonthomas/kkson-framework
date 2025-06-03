@@ -3,7 +3,7 @@
 namespace KKsonFramework\App\Controller\frontend\route;
 
 use KKsonFramework\App\FrontendApp;
-use Slim\Slim;
+use KKsonFramework\Classes\Slim\Slim;
 
 class FrontendRouteControllerBase
 {

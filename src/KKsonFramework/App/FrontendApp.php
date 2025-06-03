@@ -7,7 +7,7 @@ use KKsonFramework\Auth\Auth;
 use KKsonFramework\CRUD\SlimKKsonCRUD;
 use League\Plates\Engine;
 use Slim\Http\Request;
-use Slim\Slim;
+use KKsonFramework\Classes\Slim\Slim;
 use Stringy\Stringy;
 use KKsonFramework\Utils\UrlUtils;
 

@@ -30,4 +30,6 @@
 div.tmpl {
   display: none!important;
 }
-/*# sourceMappingURL=kkson-crud.css.map */
+.custom-file-input {
+  cursor: pointer;
+}

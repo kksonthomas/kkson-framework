@@ -122,6 +122,21 @@ $.extend( $.fn.dataTable.defaults, {
 
 
 $(function() {
+    $(".custom-file-label").each(function() {
+        let label = $(this);
+        label.data("placeholder", label.text());
+    });
+    $(".custom-file-input").on("change", function() {
+        const file = $(this).val();
+        const fileName = file.split("\\").pop();
+        let label = $(this).next(".custom-file-label");
+        if(fileName) {
+            label.addClass("selected").html(fileName);
+        } else {
+            label.removeClass("selected").html(label.data("placeholder"));
+        }
+    });
+
     $("body").on("click", "#kkson-crud-table_ellipsis>a", function() {
         const info = crud.table.page.info();
         const d = {

@@ -117,6 +117,17 @@ $.extend( $.fn.dataTable.defaults, {
         };
     }
     window.StringUtils = new StringUtilsClass();
+    function KKsonUtilsClass() {
+        this.copyToClipboard = async function (text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                ToastUtils.showSuccess("已複製到剪貼簿");
+            } catch (err) {
+                ToastUtils.showError("複製失敗");
+            }
+        }
+    }
+    window.KKsonUtils = new KKsonUtilsClass();
 })();
 
 

@@ -42,6 +42,10 @@ class DateUtils
         return (new DateTime($dateString))->format("Y-m-d H:i");
     }
 
+    public static function toDateTime($dateString) {
+        return (new DateTime($dateString))->format("Y-m-d H:i:s");
+    }
+
     public static function toChineseFormatDate($date, $dateTimeFormat = false)
     {
         if($date) {

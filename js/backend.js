@@ -73,7 +73,7 @@ $.extend( $.fn.dataTable.defaults, {
     window.AlertUtils = new AlertUtilsClass();
 
     function ToastUtilsClass () {
-        toastr.options = {
+        this.options = {
             "closeButton": false,
             "debug": false,
             "newestOnTop": false,
@@ -91,18 +91,22 @@ $.extend( $.fn.dataTable.defaults, {
             "hideMethod": "fadeOut"
         };
 
-        this.show = function(msg, type) {
-            toastr[type](msg);
+        this.show = function(msg, type, options) {
+            toastr.options = {...this.options, ...options};
+            return toastr[type](msg);
         };
 
-        this.showSuccess = function(msg) {
-            this.show(msg, "success");
+        this.showSuccess = function(msg, options) {
+            return this.show(msg, "success", options);
         };
-        this.showInfo = function(msg) {
-            this.show(msg, "info");
+        this.showInfo = function(msg, options) {
+            return this.show(msg, "info", options);
         };
-        this.showError = function(msg) {
-            this.show(msg, "error");
+        this.showWarning = function(msg, options) {
+            return this.show(msg, "warning", options);
+        };
+        this.showError = function(msg, options) {
+            return this.show(msg, "error", options);
         };
     }
     window.ToastUtils = new ToastUtilsClass();

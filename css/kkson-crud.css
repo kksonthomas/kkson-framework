@@ -33,3 +33,9 @@ div.tmpl {
 .custom-file-input {
   cursor: pointer;
 }
+.crud-table-extra-horizontal-scroll {
+  overflow-x: auto;
+}
+.crud-table-extra-horizontal-scroll .dummy-content {
+  height: 1px;
+}

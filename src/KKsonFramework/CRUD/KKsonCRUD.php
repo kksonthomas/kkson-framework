@@ -43,6 +43,7 @@ class KKsonCRUD
     protected $exportLink = "";
     protected $listViewJSONLink = "";
     protected ?string $listViewHeaderButtonHtml = null;
+    protected string $commonButtonClasses = "";
 
     /**
      * @var string If it is null, the getter will return getListViewLink() instead of ths var.
@@ -562,11 +563,12 @@ class KKsonCRUD
             if($isAllowEditClause) {
                 $isAllowEdit = $isAllowEditClause($bean);
             }
-            $classes = "";
+            $classes = "$this->commonButtonClasses";
             if(!$isAllowEdit) {
                 $url = "#";
-                $classes = "disabled";
+                $classes = " disabled";
             }
+            
 
             $html .= <<< HTML
 <a href="$url" class="btn btn-default $classes">$editName</a>
@@ -582,10 +584,10 @@ HTML;
             if($isAllowDeleteClause) {
                 $isAllowDelete = $isAllowDeleteClause($bean);
             }
-            $classes = "";
+            $classes = "$this->commonButtonClasses";
             if(!$isAllowDelete) {
                 $url = "";
-                $classes = "disabled";
+                $classes = " disabled";
             }
 
             $html .= <<< HTML
@@ -595,7 +597,7 @@ HTML;
 
         if ($this->getRowAction() != null) {
             $c = $this->getRowAction();
-            $html .= $c($bean);
+            $html .= $c($bean, $this->getCommonButtonClasses());
         }
 
         return $html;
@@ -2123,5 +2125,13 @@ HTML;
 
     public function setListViewHeaderButtonHtml(?string $html) {
         $this->listViewHeaderButtonHtml = $html;
+    }
+
+    public function setCommonButtonClasses(string $commonButtonClasses) {
+        $this->commonButtonClasses = $commonButtonClasses;
+    }
+
+    public function getCommonButtonClasses() {
+        return $this->commonButtonClasses;
     }
 }

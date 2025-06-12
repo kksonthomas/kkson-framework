@@ -280,8 +280,9 @@ class Field
      */
     public function customHTML($html)
     {
-        $this->fieldType = new CustomField();
-        $this->fieldType->setHtml($html);
+        $fieldType = new CustomField();
+        $fieldType->setHtml($html);
+        $this->setFieldType($fieldType);
         return $this;
     }
 
@@ -316,6 +317,10 @@ class Field
     public function isDisabled()
     {
         return $this->disabled;
+    }
+
+    public function setDisabledReadOnly($val) {
+        return $this->setDisabled($val)->setReadOnly($val);
     }
 
 

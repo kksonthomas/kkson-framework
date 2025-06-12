@@ -213,6 +213,20 @@ abstract class BaseCRUDController
         }
     }
 
+    public static function getSearchParam($q) {
+        $decodedQ = base64_decode(rawurldecode($q));
+        $json = urldecode($decodedQ);
+        $searchParam = json_decode($json);
+        return $searchParam;
+    }
+
+    public static function encodeSearchParam($searchParam) {
+        $json = json_encode($searchParam);
+        $encodedQ = base64_encode(rawurlencode($json));
+        $q = http_build_query(["q" => $encodedQ]);
+        return $q;
+    }
+
     public function getWhereClauseSql() {
         return empty($this->whereClauses) ? "1=1" : implode(" AND ", $this->whereClauses) ;
     }
@@ -288,13 +302,15 @@ abstract class BaseCRUDController
         return $fieldSql;
     }
 
-    private function getSqlBody() {
+    private function getSqlBody($withGroupBy = true) {
+
+        $groupBySql = $withGroupBy ? $this->getGroupBySql() : "";
         $sql = "
             FROM {$this->getBaseTableName()} $this->baseTableAlias
             {$this->getJoinClausesSql()}
             WHERE
                 {$this->getWhereClauseSql()}
-            {$this->getGroupBySql()}";
+            {$groupBySql}";
 
         return $sql;
     }
@@ -326,8 +342,8 @@ abstract class BaseCRUDController
         });
         $this->crud->setCountListViewDataClosure(function($keyword) {
             $sql = "SELECT 
-            COUNT({$this->baseFieldName("id")})
-                {$this->getSqlBody()}";
+            COUNT(distinct {$this->baseFieldName("id")})
+                {$this->getSqlBody(false)}";
             return R::getCell($sql, $this->sqlData);
         });
     }

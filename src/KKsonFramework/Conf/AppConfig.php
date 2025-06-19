@@ -5,18 +5,18 @@ namespace KKsonFramework\Conf;
 class AppConfig extends ConfigBase
 {
     const APP_CONFIG_FILENAME = "app.config.ini";
-    static protected $instance;
+    static protected $instances = [];
 
-    public static function get() : self {
-        if(!static::$instance) {
-            static::$instance = new static();
-        }
-        return static::$instance;
-    }
-
-    public static function set(self $instance) : void
+    final public static function get() : static
     {
-        static::$instance = $instance;
+        $calledClass = get_called_class();
+
+        if (!isset(static::$instances[$calledClass]))
+        {
+            static::$instances[$calledClass] = new $calledClass();
+        }
+
+        return static::$instances[$calledClass];
     }
 
     public function __construct($configDir = "conf/")

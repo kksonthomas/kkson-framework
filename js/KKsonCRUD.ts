@@ -323,5 +323,10 @@ class KKsonCRUD {
     public field(name) {
         return $("#field-" + name);
     }
+
+    public resetColOrder() {
+        this.table.colReorder.reset();
+        ToastUtils.showSuccess("重設欄位順序成功");
+    }
 }
 

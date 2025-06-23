@@ -243,4 +243,46 @@ abstract class BaseModelBase extends SimpleModel
     public static function findById($id, $findDeleted = false) {
         return static::load($id, $findDeleted);
     }
+
+
+    /**
+     * @param int $id
+     * @return static|null
+     */
+    public static function loadForUpdate($id) {
+        $bean = R::loadForUpdate(static::_getTableName(), $id);
+
+        if($bean && $bean->id != 0) {
+            return $bean->box();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param string $sql
+     * @param array $data
+     * @return static[]
+     */
+    public static function findForUpdate($sql, $data = []) {
+        return self::beanListToObjectList(R::findForUpdate(static::_getTableName(), $sql, $data));
+    }
+
+    /**
+     * @param string $sql
+     * @param array $data
+     * @return static|null
+     */
+    public static function findOneForUpdate($sql, $data = []) {
+        $bean = R::findOneForUpdate(static::_getTableName(), $sql, $data);
+        if($bean) {
+            return $bean->box();
+        } else {
+            return null;
+        }
+    }
+
+    public function export($meta = false, $parents = false, $onlyMe = false, $filters = []) {
+        return $this->bean->export($meta, $parents, $onlyMe, $filters);
+    }
 }

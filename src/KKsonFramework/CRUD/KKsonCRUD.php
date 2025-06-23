@@ -44,6 +44,7 @@ class KKsonCRUD
     protected $listViewJSONLink = "";
     protected ?string $listViewHeaderButtonHtml = null;
     protected string $commonButtonClasses = "";
+    protected string $headerButtonClasses = "";
 
     /**
      * @var string If it is null, the getter will return getListViewLink() instead of ths var.
@@ -2097,18 +2098,35 @@ HTML;
 
     public function getCreateButtonHtml() {
         if($this->isEnabledCreate()) {
-            return "<a class=\"btn btn-primary\" href=\"{$this->getCreateLink()}\">{$this->getCreateName()}</a>";
+            return "<a class=\"btn btn-primary {$this->getHeaderButtonClasses()}\" href=\"{$this->getCreateLink()}\">{$this->getCreateName()}</a>";
         }
     }
 
     public function getExportButtonHtml() {
         if($this->isEnabledExport()) {
-            return "<a id=\"btn-kksoncrud-export\" class=\"btn btn-default\" href=\"{$this->getExportLink()}\">{$this->getExportName()}</a>";
+            return "<a id=\"btn-kksoncrud-export\" class=\"btn btn-default {$this->getHeaderButtonClasses()}\" href=\"{$this->getExportLink()}\">{$this->getExportName()}</a>";
         }
     }
 
     public function getListViewRefreshButtonHtml() {
-        return "<button type=\"button\" class=\"btn btn-default btnRefreshDatatable\"><i class=\"fa fa-sync\"></i> 重新整理</button>";
+        return <<<HTML
+        <div class="btn-group">
+            <button type="button" class="btn btn-default btnRefreshDatatable {$this->getHeaderButtonClasses()}"><i class="fa fa-sync"></i> 重新整理</button>
+            <button type="button" class="btn btn-default dropdown-toggle dropdown-toggle-split {$this->getHeaderButtonClasses()}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="javascript:void(0)" onclick="crud.resetColOrder()">重設欄位順序</a>
+            </div>
+        </div>
+        HTML;
+    }
+
+    public function getDatatableColFilterButtonHtml() {
+        return <<<HTML
+        <div class="crud-dt-colFilter-container btn-group">
+        </div>
+        HTML;
     }
 
     public function getListViewHeaderButtonHtml() {
@@ -2118,13 +2136,23 @@ HTML;
             $html = "";
             $html .= $this->getCreateButtonHtml();
             $html .= $this->getExportButtonHtml();
+            $html .= $this->getDatatableColFilterButtonHtml();
             $html .= $this->getListViewRefreshButtonHtml();
             return $html;
         }
     }
 
+
     public function setListViewHeaderButtonHtml(?string $html) {
         $this->listViewHeaderButtonHtml = $html;
+    }
+
+    public function setHeaderButtonClasses(string $headerButtonClasses) {
+        $this->headerButtonClasses = $headerButtonClasses;
+    }
+
+    public function getHeaderButtonClasses() {
+        return $this->headerButtonClasses;
     }
 
     public function setCommonButtonClasses(string $commonButtonClasses) {

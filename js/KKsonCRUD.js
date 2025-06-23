@@ -268,5 +268,9 @@ var KKsonCRUD = /** @class */ (function () {
     KKsonCRUD.prototype.field = function (name) {
         return $("#field-" + name);
     };
+    KKsonCRUD.prototype.resetColOrder = function () {
+        this.table.colReorder.reset();
+        ToastUtils.showSuccess("重設欄位順序成功");
+    };
     return KKsonCRUD;
 }());

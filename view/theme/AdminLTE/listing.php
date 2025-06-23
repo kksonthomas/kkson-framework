@@ -50,13 +50,35 @@ $crud->addJavaScriptCode(
 
     crud.initListView(isAjax?ajaxOptions:null, ajaxUrl, enableSearch, enableSorting, {
         "scrollX": true,
+        "colReorder": true,
         "fixedHeader": {
             "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight()
         },
         "initComplete": function() {
             $('.dt-paging').first().appendTo('.ext-dt-paging');
+            $(".buttons-colvis").first().appendTo('.crud-dt-colFilter-container');
         },
         "layout": {
+            "topStart": {
+                "pageLength" : true,
+                "buttons": [
+                    {
+                        "extend": "colvis", 
+                        "columns": ":not(.noVis)",
+                        "popoverTitle": "欄位顯示設定",
+                        "prefixButtons": [{
+                            text: '全部',
+                            action: function ( e, dt, node, config ) {
+                                let colCount = crud.table.columns().count();
+                                crud.table.columns(Array.from({length: colCount}, (_, i) => i)).visible(this.active());
+                                this.active(!this.active());
+                                crud.table.columns.adjust();
+                                crud.table.draw();
+                            }
+                        }]
+                    }
+                ]
+            },
             "bottomEnd": {
                 "paging": {
                     "previousNext": false
@@ -76,12 +98,13 @@ $crud->addJavaScriptCode(
         let scrollSeletor = '#kkson-crud-table_wrapper .dt-scroll-body';
         let scrollContentSelector = scrollSeletor + ' > *';
 
-        crud.table.on('draw', function () {
+        crud.table.on('draw column-visibility.dt', function () {
             extraScrollDummy.width($(scrollContentSelector).width());
             $(scrollSeletor).scroll(function() {
                 extraScroll.scrollLeft($(scrollSeletor).scrollLeft());
             });
         });
+        
         extraScroll.scroll(function() {
             $(scrollSeletor).scrollLeft(extraScroll.scrollLeft());
         });
@@ -226,14 +249,6 @@ $tableDisplayName = ($crud->getTableDisplayName() != "" ? $crud->getTableDisplay
                             <?php endforeach; ?>
                         </tr>
                     </thead>
-                    <tfoot>
-                        <tr>
-                            <th></th>
-                            <?php foreach ($fields as $field) : ?>
-                                <th></th>
-                            <?php endforeach; ?>
-                        </tr>
-                    </tfoot>
                     <tbody>
                         <?php foreach ($list as $bean) : ?>
                             <tr id="row-<?= $bean->id ?>">

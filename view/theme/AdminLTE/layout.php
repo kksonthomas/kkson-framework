@@ -24,7 +24,7 @@ $isLoginAs = Auth::isLoginAs();
     <link rel="stylesheet" href="/vendor/fortawesome/font-awesome/css/font-awesome.min.css">
 
     <link rel="stylesheet" href="/vendor/almasaeed2010/adminlte/plugins/daterangepicker/daterangepicker.css">
-    <link rel="stylesheet" href="/vendor/kksonthomas/kkson-framework/lib/datatables/datatables.min.css">
+    <link rel="stylesheet" href="/vendor/kksonthomas/kkson-framework/lib/datatables/datatables.min.css?v=1">
     <link rel="stylesheet" href="/vendor/almasaeed2010/adminlte/plugins/select2/css/select2.min.css">
     <link rel="stylesheet" href="/vendor/almasaeed2010/adminlte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
     <link rel="stylesheet" href="/vendor/almasaeed2010/adminlte/plugins/sweetalert2/sweetalert2.min.css">
@@ -33,7 +33,7 @@ $isLoginAs = Auth::isLoginAs();
     <link rel="stylesheet" href="/vendor/almasaeed2010/adminlte/plugins/bootstrap-switch/css/bootstrap3/bootstrap-switch.min.css">
 
     <link rel="stylesheet" href="/vendor/almasaeed2010/adminlte/dist/css/adminlte.min.css">
-    <link rel="stylesheet" href="/vendor/kksonthomas/kkson-framework/css/kkson-crud.css">
+    <link rel="stylesheet" href="/vendor/kksonthomas/kkson-framework/css/kkson-crud.css?v=2">
 
     <?=$crud->getHeadHTML(); ?>
 </head>
@@ -157,7 +157,7 @@ $isLoginAs = Auth::isLoginAs();
 <script src="/vendor/almasaeed2010/adminlte/plugins/toastr/toastr.min.js"></script>
 <script src="/vendor/kksonthomas/kkson-framework/lib/ckeditor5/ckeditor.js"></script>
 
-<script src="/vendor/kksonthomas/kkson-framework/lib/datatables/datatables.min.js"></script>
+<script src="/vendor/kksonthomas/kkson-framework/lib/datatables/datatables.min.js?v=1"></script>
 
 <script src="/vendor/almasaeed2010/adminlte/plugins/jquery-validation/jquery.validate.min.js"></script>
 <script src="/vendor/almasaeed2010/adminlte/plugins/jquery-validation/localization/messages_zh_TW.min.js"></script>

@@ -15,3 +15,15 @@
 .ext-dt-paging .pagination {
     margin-bottom: 0;
 }
+
+#kkson-crud-table_wrapper .buttons-colvis {
+    display: none!important;
+}
+
+table.dataTable th.dt-type-numeric div.dt-column-header, table.dataTable th.dt-type-numeric div.dt-column-footer, table.dataTable th.dt-type-date div.dt-column-header, table.dataTable th.dt-type-date div.dt-column-footer, table.dataTable td.dt-type-numeric div.dt-column-header, table.dataTable td.dt-type-numeric div.dt-column-footer, table.dataTable td.dt-type-date div.dt-column-header, table.dataTable td.dt-type-date div.dt-column-footer {
+    flex-direction: row;
+}
+
+.dtfc-fixed-start {
+    background-color: #fff!important;
+}

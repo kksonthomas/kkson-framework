@@ -54,6 +54,9 @@ $crud->addJavaScriptCode(
         "fixedHeader": {
             "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight()
         },
+        "fixedColumns": {
+            "left": 2
+        },
         "initComplete": function() {
             $('.dt-paging').first().appendTo('.ext-dt-paging');
             $(".buttons-colvis").first().appendTo('.crud-dt-colFilter-container');

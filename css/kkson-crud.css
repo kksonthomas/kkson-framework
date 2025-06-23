@@ -43,3 +43,7 @@ div.tmpl {
 .dtfh-floatingparent.dtfh-floatingparent-head {
   background-color: #fff;
 }
+.dropdown-menu.dt-button-collection {
+  overflow-y: auto!important;
+  height: 50vh!important;
+}

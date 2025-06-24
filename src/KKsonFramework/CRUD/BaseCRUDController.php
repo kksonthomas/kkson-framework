@@ -197,6 +197,9 @@ abstract class BaseCRUDController
         $this->crud->setData("searchableFieldMap", $this->getSearchableFieldMap());
         // handle search
         $q = $this->crud->getSlim()->request->params("q");
+        if($q === null) {
+            return;
+        }
         
         $decodedQ = base64_decode(rawurldecode($q));
         $json = urldecode($decodedQ);

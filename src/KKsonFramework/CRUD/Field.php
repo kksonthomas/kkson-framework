@@ -432,7 +432,7 @@ class Field
                     $value = $this->getFieldType()->beforeRenderValue($bean->{$name});
 
                     // Escape the html
-                    $value = htmlspecialchars($value);
+                    $value = htmlspecialchars($value??'');
                 }
             }
 

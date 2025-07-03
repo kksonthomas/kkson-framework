@@ -218,7 +218,7 @@ $tableDisplayName = ($crud->getTableDisplayName() != "" ? $crud->getTableDisplay
                 <div class="row">
                     <div class="col-12">
                         <h3 class="card-title">
-                            <? 
+                            <?php 
                             echo $crud->getListViewHeaderButtonHtml();
 
                             //legacy support

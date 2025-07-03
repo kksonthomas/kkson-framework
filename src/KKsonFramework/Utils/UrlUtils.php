@@ -126,4 +126,11 @@ class UrlUtils
         }
         return false;
     }
+
+    
+    public static function encodeCURDListingSearchParam($searchParam) {
+        $json = json_encode($searchParam);
+        $encodedQ = base64_encode(rawurlencode($json));
+        return $encodedQ;
+    }
 }

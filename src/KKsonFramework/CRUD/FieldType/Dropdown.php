@@ -94,7 +94,7 @@ EOF;
         return $html;
     }
 
-    public function renderCell($value) {
+    public function renderCell($value, $bean) {
         try {
             return $this->options[$value];
         } catch (\ErrorException $ex) {

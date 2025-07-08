@@ -34,7 +34,7 @@ EOF;
         return $html;
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         $value = trim(strip_tags($value));
         return mb_strimwidth($value, 0, 60, "...", "UTF-8");

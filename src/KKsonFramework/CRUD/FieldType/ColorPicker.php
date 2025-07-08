@@ -38,7 +38,7 @@ EOF;
         return $html;
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         return "<div style='width: 100px; height: 100px; color: $value;'>$value</div>";
     }

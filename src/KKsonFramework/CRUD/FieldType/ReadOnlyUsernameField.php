@@ -91,7 +91,7 @@ EOF;
         return $this;
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         $user = User::load($value, true);
         $username = @$user->username;

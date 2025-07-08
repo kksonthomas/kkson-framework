@@ -29,7 +29,7 @@ abstract class FieldType
         $this->field = $field;
     }
 
-    public function renderCell($value) {
+    public function renderCell($value, $bean) {
        return htmlspecialchars($value);
     }
 

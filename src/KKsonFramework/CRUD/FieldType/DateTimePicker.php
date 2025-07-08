@@ -37,7 +37,7 @@ class DateTimePicker extends DatePicker
         return DateUtils::createFromChineseFormatDate($valueFromUser, true);
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         if($value) {
             return DateUtils::toChineseFormatDate($value, true);

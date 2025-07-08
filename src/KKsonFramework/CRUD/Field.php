@@ -336,7 +336,7 @@ class Field
             if ($this->fieldType->getFieldRelation() == Field::NORMAL) {
 
                 if (isset($bean->{$this->getName()})) {
-                    $value = $this->fieldType->renderCell($bean->{$this->getName()});
+                    $value = $this->fieldType->renderCell($bean->{$this->getName()}, $bean);
                 } else {
                     $value = "";
                 }

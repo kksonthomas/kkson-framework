@@ -160,7 +160,7 @@ HTML
         $this->uploadPath = $uploadPath;
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         $imgURL = htmlspecialchars(UrlUtils::res($value));
 

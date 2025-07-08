@@ -43,7 +43,7 @@ EOF;
         return $html;
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         if($value < 0) {
             return "<span class='text-danger'>".StringUtils::numberToCurrencyString($value, $this->dp, true)."</span>";

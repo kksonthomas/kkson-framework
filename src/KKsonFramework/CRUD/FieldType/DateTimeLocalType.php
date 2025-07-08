@@ -30,7 +30,7 @@ class DateTimeLocalType extends TextField
         return R::isoDateTime(strtotime($valueFromUser));
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         return date("Y-m-d h:i A", strtotime($value));
     }

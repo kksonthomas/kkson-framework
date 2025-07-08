@@ -12,7 +12,7 @@ class OverflowHiddenTextField extends TextField
         $this->maxWidth = $maxWidth;
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         if (!empty($value)) {
             $shortValue = Stringy::create($value)->truncate($this->maxWidth, "...");

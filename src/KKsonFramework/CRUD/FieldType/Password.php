@@ -21,7 +21,7 @@ class Password extends TextField
         };
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         return "***";
     }

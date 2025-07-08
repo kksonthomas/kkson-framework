@@ -52,7 +52,7 @@ EOF;
         return $html;
     }
 
-    public function renderCell($value) {
+    public function renderCell($value, $bean) {
         return $value ? $this->yesText : $this->noText;
     }
 

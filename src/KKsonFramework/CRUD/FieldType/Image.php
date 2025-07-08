@@ -25,7 +25,7 @@ class Image extends FileType
         return '<a href="{fileURL}" class="d-flex justify-content-center border border-dark"><img src="{fileURL}" alt="" /></a>';
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         $imgURL = htmlspecialchars(UrlUtils::res($value));
 

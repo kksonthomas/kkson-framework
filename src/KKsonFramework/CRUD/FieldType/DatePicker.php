@@ -73,7 +73,7 @@ class DatePicker extends TextField
         return DateUtils::createFromChineseFormatDate($valueFromUser);
     }
 
-    public function renderCell($value)
+    public function renderCell($value, $bean)
     {
         if($value) {
             return DateUtils::toChineseFormatDate($value);

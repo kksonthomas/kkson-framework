@@ -49,7 +49,7 @@ HTML;
         return $html;
     }
 
-    public function renderCell($value) {
+    public function renderCell($value, $bean) {
         return "";
     }
 

@@ -4,6 +4,7 @@ namespace KKsonFramework\CRUD\FieldType;
 
 
 use KKsonFramework\CRUD\Field;
+use RedBeanPHP\OODBBean;
 
 abstract class FieldType
 {
@@ -29,6 +30,11 @@ abstract class FieldType
         $this->field = $field;
     }
 
+    /**
+     * @param mixed $value
+     * @param OODBBean $bean
+     * @return string
+     */
     public function renderCell($value, $bean) {
        return htmlspecialchars($value);
     }

@@ -4,7 +4,7 @@ namespace KKsonFramework\CRUD\FieldType;
 
 class UrlButton extends TextField
 {
-    public function renderCell($url)
+    public function renderCell($url, $bean)
     {
         if (!empty($url)) {
             $html = "<div class='btn-group'>";

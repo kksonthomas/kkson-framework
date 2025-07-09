@@ -30,6 +30,10 @@ abstract class FieldType
         $this->field = $field;
     }
 
+    public function getField() {
+        return $this->field;
+    }
+
     /**
      * @param mixed $value
      * @param OODBBean $bean

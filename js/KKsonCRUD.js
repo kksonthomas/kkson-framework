@@ -10,6 +10,7 @@ var KKsonCRUD = /** @class */ (function () {
         this.validateFunctions = [];
         this.errorMsgs = [];
         this.isUploading = false;
+        this.initListViewCustomData = {};
         var self = this;
         $(document).ready(function () {
             // Init Select2 !
@@ -151,6 +152,9 @@ var KKsonCRUD = /** @class */ (function () {
         }
         return obj3;
     };
+    KKsonCRUD.prototype.setInitListViewCustomData = function (data) {
+        this.initListViewCustomData = data;
+    };
     /**
      *
      * @param isAjax
@@ -181,8 +185,55 @@ var KKsonCRUD = /** @class */ (function () {
             },
             "fnStateLoad": function (oSettings) {
                 return JSON.parse(localStorage.getItem('DataTables_' + window.location.pathname));
+            },
+            "scrollX": true,
+            "colReorder": true,
+            "fixedHeader": {
+                "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight()
+            },
+            "fixedColumns": {
+                "left": 2
+            },
+            "initComplete": function () {
+                $('.dt-paging').first().appendTo('.ext-dt-paging');
+                $(".buttons-colvis").first().appendTo('.crud-dt-colFilter-container');
+            },
+            "layout": {
+                "topStart": {
+                    "pageLength": true,
+                    "buttons": [
+                        {
+                            "extend": "colvis",
+                            "columns": ":not(.noVis)",
+                            "popoverTitle": "欄位顯示設定",
+                            "prefixButtons": [{
+                                    text: '全部',
+                                    action: function (e, dt, node, config) {
+                                        var colCount = crud.table.columns().count();
+                                        crud.table.columns(Array.from({ length: colCount }, function (_, i) { return i; })).visible(this.active());
+                                        this.active(!this.active());
+                                        crud.table.columns.adjust();
+                                        crud.table.draw();
+                                    }
+                                }]
+                        }
+                    ]
+                },
+                "bottomEnd": {
+                    "paging": {
+                        "previousNext": false
+                    }
+                },
+                "topEnd": {
+                    "paging": {
+                        "previousNext": false
+                    }
+                },
             }
         };
+        if (this.initListViewCustomData != null) {
+            data = this.mergeObject(data, this.initListViewCustomData);
+        }
         if (customData != null) {
             data = this.mergeObject(data, customData);
         }

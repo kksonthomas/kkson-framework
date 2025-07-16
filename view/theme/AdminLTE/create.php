@@ -11,10 +11,18 @@ use KKsonFramework\CRUD\Middleware\CSRFGuard;
 $crud->addBodyEndHTML(<<< HTML
 <script>
     crud.setAjaxFormCallback(function (result) {
-        if (result.class == "danger") {
-            AlertUtils.showError(result.msg);
+        if(typeof result.ok !== "undefined") {
+            if (result.ok) {
+                if(typeof result.redirect_url !== "undefined") {
+                    location.href = result.redirect_url;   
+                } else {
+                    AlertUtils.showSuccess("新增成功", result.msg);
+                }
+            } else {
+                AlertUtils.showError("新增失敗", result.msg);
+            }
         } else {
-            location.href = result.redirect_url;   
+            AlertUtils.showError("新增失敗", "未知錯誤, 請稍後再試或聯絡管理員");
         }
     });
 </script>

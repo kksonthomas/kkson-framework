@@ -51,4 +51,8 @@ class AppConfig extends ConfigBase
     public function forceSsl() {
         return @($this->getConfigSection("app")["force_ssl"]) ? true : false;
     }
+
+    public function displayError() : bool {
+        return @($this->getConfigSection("app")["display_error"]) ?? true;
+    }
 }

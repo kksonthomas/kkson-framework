@@ -51,7 +51,7 @@ class App
                 die();
             }
 
-            if (!self::isUAT()) {
+            if (!AppConfig::get()->displayError()) {
                 error_reporting(E_ERROR ^ E_DEPRECATED);
                 ini_set('display_errors', 'Off');
             } else {

@@ -567,7 +567,7 @@ class KKsonCRUD
             $classes = "$this->commonButtonClasses";
             if(!$isAllowEdit) {
                 $url = "#";
-                $classes = " disabled";
+                $classes .= " disabled";
             }
             
 
@@ -588,7 +588,7 @@ HTML;
             $classes = "$this->commonButtonClasses";
             if(!$isAllowDelete) {
                 $url = "";
-                $classes = " disabled";
+                $classes .= " disabled";
             }
 
             $html .= <<< HTML

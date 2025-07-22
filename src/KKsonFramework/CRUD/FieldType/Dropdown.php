@@ -86,7 +86,7 @@ TAG;
 EOF;
         }
 
-        $html .= "</select><br />";
+        $html .= "</select>";
 
         if ($echo)
             echo $html;

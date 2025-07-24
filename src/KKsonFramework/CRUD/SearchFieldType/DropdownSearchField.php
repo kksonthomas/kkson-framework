@@ -19,7 +19,7 @@ class DropdownSearchField extends SearchFieldBase
      * @param string $fieldSql
      * @param callable|null $processSearchToSqlCallback
      */
-    public function __construct($name, $options, $placeholder = null, $displayName = null, $fieldSql = null, callable $processSearchToSqlCallback = null)
+    public function __construct($name, $options, $placeholder = null, $displayName = null, $fieldSql = null, ?callable $processSearchToSqlCallback = null)
     {
         $this->options = $options;
         $this->placeholder = $placeholder;
@@ -32,7 +32,12 @@ class DropdownSearchField extends SearchFieldBase
             "tag" => "select",
             "attr" => [],
             "options" => $this->options,
-            "placeholder" => $this->placeholder
+            "placeholder" => $this->placeholder,
+            "js" => <<<JS
+            function(elem, keyword) {
+                $(elem).select2();
+            }
+            JS
         ];
     }
 

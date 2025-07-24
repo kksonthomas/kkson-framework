@@ -1,4 +1,4 @@
-.btnUnIndentSc[style*='display: none'] ~ .btnIndentSc, .btnIndentSc[style*='display: none'] ~ .btnDelSc {
+.btnUnIndentSc[style*='display: none'] ~ .btnIndentSc, .btnIndentSc[style*='display: none'] ~ .btnCopySc {
     border-top-left-radius: 0.25rem;
     border-bottom-left-radius: 0.25rem;
 }

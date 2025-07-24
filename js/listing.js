@@ -9,8 +9,12 @@ function SearchCriteria(scGroup, config, data = null) {
     this.btnDelSc = this.elem.find(".btnDelSc");
     this.btnIndentSc = this.elem.find(".btnIndentSc");
     this.btnUnIndentSc = this.elem.find(".btnUnIndentSc");
+    this.btnCopySc = this.elem.find(".btnCopySc");
 
     this.elem.data("instance", this);
+
+    this.selFieldNameElem.select2();
+    this.selCond.select2();
 
     this.btnDelSc.click(function() {
         self.elem.remove();
@@ -41,6 +45,12 @@ function SearchCriteria(scGroup, config, data = null) {
         } else {
             throw "Cant UnIndent root level group";
         }
+    });
+
+    this.btnCopySc.click(function() {
+        let sc = new SearchCriteria(self.scGroup, config, self.toDataObject());
+        sc.elem.insertAfter(self.elem);
+        self.scGroup.refreshUI(true);
     });
 
     this.refreshUI = function() {
@@ -146,10 +156,9 @@ function SearchCriteria(scGroup, config, data = null) {
     });
     if (data) {
         if (config["searchableFields"][data[0]]) {
-            this.selFieldNameElem.val(data[0]);
-            this.refreshUI();
-            this.selCond.val(data[1]);
-            this.keywordContainerElem.find(".inputKeyword").val(data[2]);
+            this.selFieldNameElem.val(data[0]).trigger("change");
+            this.selCond.val(data[1]).trigger("change");
+            this.keywordContainerElem.find(".inputKeyword").val(data[2]).trigger("change");
         }
     }
     this.refreshUI();

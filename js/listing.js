@@ -53,7 +53,7 @@ function SearchCriteria(scGroup, config, data = null) {
         self.scGroup.refreshUI(true);
     });
 
-    this.refreshUI = function() {
+    this.refreshInputs = function() {
         let fieldName = this.selFieldNameElem.val();
         let condValue = this.selCond.val();
         let keyword = this.keywordContainerElem.find(".inputKeyword").val();
@@ -102,16 +102,19 @@ function SearchCriteria(scGroup, config, data = null) {
                 }
             }
 
-            if (this.selCond.children(`[value="${condValue}"]`).length > 0) {
+            if (condValue !== null &&this.selCond.children(`[value="${condValue}"]`).length > 0) {
                 this.selCond.val(condValue).change();
             } else {
-                this.selCond.val("").change();
+                this.selCond.val(this.selCond.children(":not(.placeholder)").first().val()).change();
             }
         } else {
             this.selCond.prop("disabled", true);
             this.keywordContainerElem.hide();
         }
+        this.refreshButtons();
+    };
 
+    this.refreshButtons = function() {
         if (this.scGroup.parent instanceof SearchCriteriaGroup) {
             this.btnUnIndentSc.show();
         } else {
@@ -127,14 +130,21 @@ function SearchCriteria(scGroup, config, data = null) {
         } else {
             this.btnIndentSc.hide();
         }
-
     };
 
     this.toDataObject = function() {
         let fieldName = this.selFieldNameElem.val();
         let condValue = this.selCond.val();
         let keywordElem = this.keywordContainerElem.find(".inputKeyword");
+        let isKeywordInputSelect2Ajax = keywordElem.hasClass("select2-ajax");
         let keyword = keywordElem.data("value") ?? keywordElem.val();
+        if(isKeywordInputSelect2Ajax) {
+            let option = keywordElem.find(":selected");
+            keyword = {
+                id: option.val(),
+                text: option.text()
+            };
+        }
         if (fieldName) {
             return [fieldName, condValue, keyword];
         } else {
@@ -142,7 +152,7 @@ function SearchCriteria(scGroup, config, data = null) {
         }
     };
 
-    this.selFieldNameElem.change(this.refreshUI.bind(this));
+    this.selFieldNameElem.change(this.refreshInputs.bind(this));
     this.selCond.change(function() {
         let cond = $(this).val();
         let cfg = config["conditionConfig"][cond];
@@ -154,14 +164,28 @@ function SearchCriteria(scGroup, config, data = null) {
             self.keywordContainerElem.hide();
         }
     });
+    this.refreshInputs();
     if (data) {
         if (config["searchableFields"][data[0]]) {
             this.selFieldNameElem.val(data[0]).trigger("change");
             this.selCond.val(data[1]).trigger("change");
-            this.keywordContainerElem.find(".inputKeyword").val(data[2]).trigger("change");
+            let keywordElem = this.keywordContainerElem.find(".inputKeyword");
+            let isKeywordInputSelect2Ajax = keywordElem.hasClass("select2-ajax");
+            if(isKeywordInputSelect2Ajax) {
+                if (keywordElem.find("option[value='" + data[2]["id"] + "']").length) {
+                    keywordElem.val(data[2]["id"]).trigger('change');
+                } else { 
+                    // Create a DOM Option and pre-select by default
+                    var newOption = new Option(data[2]["text"], data[2]["id"], true, true);
+                    // Append it to the select
+                    keywordElem.append(newOption).trigger('change');
+                } 
+            } else {
+                keywordElem.val(data[2]).trigger("change");
+            }
         }
     }
-    this.refreshUI();
+    this.refreshButtons();
 }
 
 function SearchCriteriaGroup(parent, config, data = null) {
@@ -224,7 +248,7 @@ function SearchCriteriaGroup(parent, config, data = null) {
 
         if (refreshSc) {
             this.groupScElem.find(".searchCriteria,.scGroup").each((idx, elem) => {
-                $(elem).data("instance").refreshUI();
+                $(elem).data("instance").refreshButtons();
             });
         }
     };
@@ -305,9 +329,9 @@ function KKsonCRUDSearchingPane(formElem, config) {
             this.sc = new SearchCriteriaGroup(this, config);
             this.elem.append(this.sc.elem);
         }
-        this.elem.find(".searchCriteria").each((idx, elem) => {
-            $(elem).data("instance").refreshUI();
-        });
+        // this.elem.find(".searchCriteria").each((idx, elem) => {
+        //     $(elem).data("instance").refreshUI();
+        // });
     };
 
 

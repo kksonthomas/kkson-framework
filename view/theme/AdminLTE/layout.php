@@ -7,7 +7,8 @@ use KKsonFramework\CRUD\Middleware\CSRFGuard;
 use KKsonFramework\Utils\UrlUtils;
 
 /** @var SlimKKsonCRUD $crud */
-
+/** @var bool $disableLayoutFooterFixed */
+$disableLayoutFooterFixed = isset($disableLayoutFooterFixed) ? $disableLayoutFooterFixed : false;
 $isLoginAs = Auth::isLoginAs();
 ?>
 <!DOCTYPE html>
@@ -37,7 +38,7 @@ $isLoginAs = Auth::isLoginAs();
 
     <?=$crud->getHeadHTML(); ?>
 </head>
-<body class="sidebar-mini layout-navbar-fixed layout-footer-fixed" style="height: auto;">
+<body class="sidebar-mini layout-navbar-fixed <?=$disableLayoutFooterFixed ? "" : "layout-footer-fixed" ?>" style="height: auto;">
 <div class="wrapper">
 
     <nav class="main-header navbar navbar-expand navbar-white navbar-light ">

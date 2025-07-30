@@ -216,6 +216,7 @@ class KKsonCRUD {
             "searching": enableSearch,
             "info": true,
             "drawCallback": function (settings) {
+                self.dtStickyScrollbarDrawCallback();
                 self.refresh();
             },
             "bStateSave": true,
@@ -228,7 +229,7 @@ class KKsonCRUD {
             "scrollX": true,
             "colReorder": true,
             "fixedHeader": {
-                "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight()
+                "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight() -5
             },
             "fixedColumns": {
                 "left": 2
@@ -308,6 +309,58 @@ class KKsonCRUD {
             this.columnFilter();
         });
     }
+
+    public dtStickyScrollbarDrawCallback() {
+        let targetElemSelector = ".dt-scroll-body";
+        let targetElem = $(targetElemSelector);
+        let dtStickyScrollbar = $(".dt-sticky-scrollbar");
+        if (!dtStickyScrollbar.length) {
+            dtStickyScrollbar = $("<div>").addClass("dt-sticky-scrollbar").appendTo(targetElem.parent());
+            //<div class="dt-sticky-scrollbar"></div>
+        }
+
+
+        let dtStickyScrollbarContent = null;
+        if (!dtStickyScrollbar.data("isInit")) {
+            dtStickyScrollbarContent = $("<div>").appendTo(dtStickyScrollbar);
+
+            dtStickyScrollbar.scroll(function () {
+                if ($(this).data("ignoreScroll")) {
+                    $(this).data("ignoreScroll", false);
+                    console.log("dtStickyScrollbar.scroll ignoreScroll");
+                    return;
+                }
+                let targetElem = $(targetElemSelector);
+                if (targetElem.scrollLeft() !== dtStickyScrollbar.scrollLeft()) {
+                    targetElem.scrollLeft(dtStickyScrollbar.scrollLeft());
+                }
+            });
+
+            $(window).scroll(function (e) {
+                let targetElem = $(targetElemSelector);
+                if (window.innerHeight + window.pageYOffset < targetElem.offset().top + targetElem.height()) {
+                    dtStickyScrollbar.addClass("sticky");
+                    if (targetElem.scrollLeft() !== dtStickyScrollbar.scrollLeft()) {
+                        dtStickyScrollbar.data("ignoreScroll", true).scrollLeft(targetElem.scrollLeft());
+                    }
+                } else {
+                    dtStickyScrollbar.removeClass("sticky");
+                }
+            }).resize(function () {
+                if (dtStickyScrollbar.hasClass("sticky")) {
+                    dtStickyScrollbar.width(targetElem.width());
+                }
+            });
+
+
+            dtStickyScrollbar.data("isInit", true);
+            dtStickyScrollbar.width(targetElem.width());
+        } else {
+            dtStickyScrollbarContent = dtStickyScrollbar.children();
+        }
+
+        dtStickyScrollbarContent.css("width", targetElem.children().css("width"));
+    };
 
     public columnFilter() {
         let self = this;

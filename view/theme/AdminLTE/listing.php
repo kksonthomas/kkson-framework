@@ -13,7 +13,7 @@ use KKsonFramework\CRUD\Middleware\CSRFGuard;
 $crud->addHeadExternalCss("/vendor/kksonthomas/kkson-framework/css/listing.css?v=2");
 $crud->addBodyEndExternalJs("/vendor/kksonthomas/kkson-framework/js/listing.js?v=2");
 
-$this->layout($layoutName);
+$this->layout($layoutName, ["disableLayoutFooterFixed" => true]);
 
 $isAjax = ($crud->isAjaxListView()) ? "true" : "false";
 $jsonLink = $crud->getListViewJSONLink();
@@ -37,22 +37,6 @@ $crud->addJavaScriptCode(
     });
     
     $(function () {
-        let extraScroll = $('.crud-table-extra-horizontal-scroll');
-        let extraScrollDummy = extraScroll.find('.dummy-content');
-        let scrollSeletor = '#kkson-crud-table_wrapper .dt-scroll-body';
-        let scrollContentSelector = scrollSeletor + ' > *';
-
-        crud.table.on('draw column-visibility.dt', function () {
-            extraScrollDummy.width($(scrollContentSelector).width());
-            $(scrollSeletor).scroll(function() {
-                extraScroll.scrollLeft($(scrollSeletor).scrollLeft());
-            });
-        });
-        
-        extraScroll.scroll(function() {
-            $(scrollSeletor).scrollLeft(extraScroll.scrollLeft());
-        });
-        
         $(".btnRefreshDatatable").click(function() {
             crud.getDataTable().ajax.reload(() => {
                 ToastUtils.showSuccess("重新整理成功");
@@ -87,10 +71,6 @@ $tableDisplayName = ($crud->getTableDisplayName() != "" ? $crud->getTableDisplay
                             ?>
                         </h3>
                         <div class="ext-dt-paging float-right">
-                        </div>
-                    </div>
-                    <div class="col-12 crud-table-extra-horizontal-scroll mt-1">
-                        <div class="dummy-content" >
                         </div>
                     </div>
                 </div>

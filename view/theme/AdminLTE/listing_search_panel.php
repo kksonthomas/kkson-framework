@@ -57,7 +57,7 @@ if (!empty($crud->getData("searchableFieldMap"))) : ?>
                             ?>
                         </select>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                         <select class="form-control selCond" autocomplete="hacking">
                             <option class="placeholder" value="" disabled="disabled" selected="" hidden="">條件</option>
                         </select>
@@ -96,7 +96,7 @@ if (!empty($crud->getData("searchableFieldMap"))) : ?>
                 <!-- form start -->
                 <form class="form-horizontal" action="" method="get" id="formSearchCriteria">
                     <div class="card-body row">
-                        <div class="formScBody col-xl-9 col-12">
+                        <div class="formScBody col-12">
                         </div>
                     </div>
                     <!-- /.card-body -->

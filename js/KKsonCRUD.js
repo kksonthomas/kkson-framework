@@ -177,6 +177,7 @@ var KKsonCRUD = /** @class */ (function () {
             "searching": enableSearch,
             "info": true,
             "drawCallback": function (settings) {
+                self.dtStickyScrollbarDrawCallback();
                 self.refresh();
             },
             "bStateSave": true,
@@ -189,7 +190,7 @@ var KKsonCRUD = /** @class */ (function () {
             "scrollX": true,
             "colReorder": true,
             "fixedHeader": {
-                "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight()
+                "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight() - 5
             },
             "fixedColumns": {
                 "left": 2
@@ -262,6 +263,53 @@ var KKsonCRUD = /** @class */ (function () {
             _this.columnFilter();
         });
     };
+    KKsonCRUD.prototype.dtStickyScrollbarDrawCallback = function () {
+        var targetElemSelector = ".dt-scroll-body";
+        var targetElem = $(targetElemSelector);
+        var dtStickyScrollbar = $(".dt-sticky-scrollbar");
+        if (!dtStickyScrollbar.length) {
+            dtStickyScrollbar = $("<div>").addClass("dt-sticky-scrollbar").appendTo(targetElem.parent());
+            //<div class="dt-sticky-scrollbar"></div>
+        }
+        var dtStickyScrollbarContent = null;
+        if (!dtStickyScrollbar.data("isInit")) {
+            dtStickyScrollbarContent = $("<div>").appendTo(dtStickyScrollbar);
+            dtStickyScrollbar.scroll(function () {
+                if ($(this).data("ignoreScroll")) {
+                    $(this).data("ignoreScroll", false);
+                    console.log("dtStickyScrollbar.scroll ignoreScroll");
+                    return;
+                }
+                var targetElem = $(targetElemSelector);
+                if (targetElem.scrollLeft() !== dtStickyScrollbar.scrollLeft()) {
+                    targetElem.scrollLeft(dtStickyScrollbar.scrollLeft());
+                }
+            });
+            $(window).scroll(function (e) {
+                var targetElem = $(targetElemSelector);
+                if (window.innerHeight + window.pageYOffset < targetElem.offset().top + targetElem.height()) {
+                    dtStickyScrollbar.addClass("sticky");
+                    if (targetElem.scrollLeft() !== dtStickyScrollbar.scrollLeft()) {
+                        dtStickyScrollbar.data("ignoreScroll", true).scrollLeft(targetElem.scrollLeft());
+                    }
+                }
+                else {
+                    dtStickyScrollbar.removeClass("sticky");
+                }
+            }).resize(function () {
+                if (dtStickyScrollbar.hasClass("sticky")) {
+                    dtStickyScrollbar.width(targetElem.width());
+                }
+            });
+            dtStickyScrollbar.data("isInit", true);
+            dtStickyScrollbar.width(targetElem.width());
+        }
+        else {
+            dtStickyScrollbarContent = dtStickyScrollbar.children();
+        }
+        dtStickyScrollbarContent.css("width", targetElem.children().css("width"));
+    };
+    ;
     KKsonCRUD.prototype.columnFilter = function () {
         var self = this;
         $(".column-filter a").click(function (e) {

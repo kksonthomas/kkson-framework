@@ -47,13 +47,6 @@ div.tmpl {
     cursor: pointer;
 }
 
-.crud-table-extra-horizontal-scroll {
-    overflow-x: auto;
-    .dummy-content {
-        height: 1px;
-    }
-}
-
 .dtfh-floatingparent.dtfh-floatingparent-head {
     background-color: #fff;
 }
@@ -61,4 +54,24 @@ div.tmpl {
 .dropdown-menu.dt-button-collection {
     overflow-y: auto!important;
     height: 50vh!important;
+}
+
+.dt-sticky-scrollbar {
+    position: static;
+    height: 17px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    display: none;
+}
+
+.dt-sticky-scrollbar.sticky {
+    position: fixed;
+    bottom: 0;
+    top: inherit!important;
+    display: block;
+    z-index: 10000;
+}
+
+.dt-sticky-scrollbar div {
+    height:17px;
 }

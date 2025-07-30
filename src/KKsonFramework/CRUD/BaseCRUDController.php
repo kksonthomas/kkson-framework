@@ -124,7 +124,7 @@ abstract class BaseCRUDController
             //sc
             $fieldName = $param[0];
             $cond = $param[1];
-            $keyword = $param[2];
+            $keyword = $param[2] instanceof \stdClass ? $param[2]->id : $param[2]; // {id, text} object for select2 ajax
 
             $searchField = $this->getSearchableField($fieldName);
 

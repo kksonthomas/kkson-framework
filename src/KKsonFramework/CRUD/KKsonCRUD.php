@@ -42,7 +42,7 @@ class KKsonCRUD
     protected $deleteLink = "";
     protected $exportLink = "";
     protected $listViewJSONLink = "";
-    protected ?string $listViewHeaderButtonHtml = null;
+    protected $listViewHeaderButtonHtml = null;
     protected string $commonButtonClasses = "";
     protected string $headerButtonClasses = "";
 
@@ -2131,7 +2131,12 @@ HTML;
 
     public function getListViewHeaderButtonHtml() {
         if($this->listViewHeaderButtonHtml !== null) {
-            return $this->listViewHeaderButtonHtml;
+            if(is_callable($this->listViewHeaderButtonHtml)) {
+                $closure = $this->listViewHeaderButtonHtml;
+                return $closure($this);
+            } else {
+                return $this->listViewHeaderButtonHtml;
+            }
         } else {
             $html = "";
             $html .= $this->getCreateButtonHtml();
@@ -2143,7 +2148,10 @@ HTML;
     }
 
 
-    public function setListViewHeaderButtonHtml(?string $html) {
+    /**
+     * @param string|callable $html
+     */
+    public function setListViewHeaderButtonHtml( $html) {
         $this->listViewHeaderButtonHtml = $html;
     }
 

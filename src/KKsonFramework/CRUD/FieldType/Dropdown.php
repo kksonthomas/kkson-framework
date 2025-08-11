@@ -57,8 +57,9 @@ class Dropdown extends FieldType
         $required = $this->getRequiredString();
         $class = $this->class;
 
+        $requireStar = $this->field->isRequired() ? "<span class='text-danger'>*</span>" : "";
         $html = <<<TAG
-<label for="field-$name" >$display</label>
+<label for="field-$name" >$requireStar $display</label>
 TAG;
 
         // data-live-search="true"   Search box for bootstrap-select

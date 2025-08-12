@@ -216,6 +216,7 @@ class KKsonCRUD {
             "searching": enableSearch,
             "info": true,
             "drawCallback": function (settings) {
+                self.crudDropdownEventInit();
                 self.dtStickyScrollbarDrawCallback();
                 self.refresh();
             },
@@ -307,6 +308,16 @@ class KKsonCRUD {
 
             // Column Filter
             this.columnFilter();
+        });
+    }
+
+    public crudDropdownEventInit() {
+        $(crud.table.containers()[0]).find(".kkson-crud-dropdown").on('show.bs.dropdown', function() {
+            if(!$(this).data("crud-dropdown-menu-relocated")) {
+                let menu = $(this).find(".dropdown-menu");
+                menu.appendTo("body");
+            }
+            $(this).data("crud-dropdown-menu-relocated", true);
         });
     }
 

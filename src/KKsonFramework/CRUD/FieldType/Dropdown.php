@@ -59,6 +59,7 @@ class Dropdown extends FieldType
 
         $requireStar = $this->field->isRequired() ? "<span class='text-danger'>*</span>" : "";
         $html = <<<TAG
+<div class="form-group">
 <label for="field-$name" >$requireStar $display</label>
 TAG;
 
@@ -88,6 +89,7 @@ EOF;
         }
 
         $html .= "</select>";
+        $html .= "</div>";
 
         if ($echo)
             echo $html;

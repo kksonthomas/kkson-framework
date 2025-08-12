@@ -177,6 +177,7 @@ var KKsonCRUD = /** @class */ (function () {
             "searching": enableSearch,
             "info": true,
             "drawCallback": function (settings) {
+                self.crudDropdownEventInit();
                 self.dtStickyScrollbarDrawCallback();
                 self.refresh();
             },
@@ -261,6 +262,15 @@ var KKsonCRUD = /** @class */ (function () {
             });
             // Column Filter
             _this.columnFilter();
+        });
+    };
+    KKsonCRUD.prototype.crudDropdownEventInit = function () {
+        $(crud.table.containers()[0]).find(".kkson-crud-dropdown").on('show.bs.dropdown', function () {
+            if (!$(this).data("crud-dropdown-menu-relocated")) {
+                var menu = $(this).find(".dropdown-menu");
+                menu.appendTo("body");
+            }
+            $(this).data("crud-dropdown-menu-relocated", true);
         });
     };
     KKsonCRUD.prototype.dtStickyScrollbarDrawCallback = function () {

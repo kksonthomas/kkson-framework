@@ -18,6 +18,7 @@ use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
 use RedBeanPHP\RedException\SQL;
 use Stringy\Stringy;
+use KKsonFramework\CRUD\Exception\EditReadOnlyRecordException;
 
 class KKsonCRUD
 {
@@ -37,6 +38,7 @@ class KKsonCRUD
     protected $listViewLink = "";
     protected $createLink = "";
     protected $createSubmitLink = "";
+    protected $viewLink = "";
     protected $editLink = "";
     protected $editSubmitLink = "";
     protected $deleteLink = "";
@@ -82,6 +84,7 @@ class KKsonCRUD
      */
     protected bool $enableListView = true;
     protected bool $enableEdit = true;
+    protected bool $enableView = true;
     protected bool $enableDelete = true;
     protected bool $enableCreate = true;
     protected bool $enableSearch = true;
@@ -102,6 +105,7 @@ class KKsonCRUD
      */
     protected $listViewTemplate = null;
     protected $editTemplate = null;
+    protected $viewTemplate = null;
     protected $createTemplate = null;
     
     private $tableDisplayName = null;
@@ -159,6 +163,7 @@ class KKsonCRUD
     protected $fieldGroupList = [];
 
     protected $editName = "Edit";
+    protected $viewName = "View";
     protected $deleteName = "Delete";
     protected $createName = "New";
     protected $exportName = "Export Excel";
@@ -208,6 +213,19 @@ class KKsonCRUD
      * @var callable
      */
     protected $isAllowDeleteClause = null;
+
+    /**
+     * @var callable
+     */
+    protected $isBeanReadOnlyClause = null;
+
+    /**
+     * @var bool
+     */
+    protected $isInsertUpdateUseTransaction = false;
+
+    protected $actionButtonType = "button";
+    protected $actionButtonName = "Action";
 
     /**
      * @return string
@@ -554,52 +572,157 @@ class KKsonCRUD
 
     protected function getAction($bean)
     {
-        $html = "";
+        $hasActionButtons = false;
+        $isBeanReadOnly = false;
+        $isBeanReadOnlyClause = $this->getIsBeanReadOnlyClause();
+        if($isBeanReadOnlyClause) {
+            $isBeanReadOnly = $isBeanReadOnlyClause($bean);
+        }
 
-        if ($this->isEnabledEdit()) {
-            $url = $this->getEditLink($bean->id);
-            $editName = $this->editName;
-            $isAllowEdit = true;
-            $isAllowEditClause = $this->getIsAllowEditClause();
-            if($isAllowEditClause) {
-                $isAllowEdit = $isAllowEditClause($bean);
+        if($this->getActionButtonType() == "dropdown") {  
+            $html = "";
+            if ($this->isEnabledView() && $isBeanReadOnly) {
+                $url = $this->getViewLink($bean->id);
+                $viewName = $this->viewName;
+    
+                $html .= <<< HTML
+    <li><a class="dropdown-item" href="$url">$viewName</a></li>
+    HTML;
+                $hasActionButtons = true;
             }
-            $classes = "$this->commonButtonClasses";
-            if(!$isAllowEdit) {
-                $url = "#";
-                $classes .= " disabled";
+    
+            if ($this->isEnabledEdit() && !$isBeanReadOnly) {
+                $url = $this->getEditLink($bean->id);
+                $editName = $this->editName;
+                $isAllowEdit = true;
+                $isAllowEditClause = $this->getIsAllowEditClause();
+                if($isAllowEditClause) {
+                    $isAllowEdit = $isAllowEditClause($bean);
+                }
+                $classes = "";
+                if(!$isAllowEdit) {
+                    $url = "#";
+                    $classes .= " disabled";
+                }
+                
+    
+                $html .= <<< HTML
+    <li><a class="dropdown-item $classes" href="$url">$editName</a></li>
+    HTML;
+                
             }
+    
+            if ($this->isEnabledDelete()) {
+                $url = $this->getDeleteLink($bean->id);
+                $deleteName = $this->deleteName;
+                $isAllowDelete = true;
+                $isAllowDeleteClause = $this->getIsAllowDeleteClause();
+                if($isAllowDeleteClause) {
+                    $isAllowDelete = $isAllowDeleteClause($bean);
+                }
+                $classes = "";
+                if(!$isAllowDelete) {
+                    $url = "";
+                    $classes .= " disabled";
+                }
+    
+                $html .= <<< HTML
+     <li><a class="dropdown-item text-danger $classes btn-delete" href="javascript:void(0)" data-id="$bean->id" data-url="$url">$deleteName</a></li>
+    HTML;
+                $hasActionButtons = true;
+            }
+            if($hasActionButtons) {
+                $classes = "$this->commonButtonClasses";
+                $actionButtonName = $this->getActionButtonName();
+                $buttonId = "action-dropdown-button-$bean->id";
+                $html = <<<HTML
+            <div class="btn-group kkson-crud-dropdown">
+  <button class="btn btn-secondary dropdown-toggle $classes" type="button" id="$buttonId" data-toggle="dropdown" aria-expanded="false">
+    $actionButtonName
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="$buttonId">
+    $html
+HTML;
+            }
+
+            $rowActionHtml = "";
+            $actionDropdownHtml = "";
+            if ($this->getRowAction() != null) {
+                $c = $this->getRowAction();
+                $rowActionHtml .= $c($bean, $this->getCommonButtonClasses(), $actionDropdownHtml);
+            }
+
+            if(!empty($actionDropdownHtml)) {
+                $html .= "<li class='dropdown-divider'></li>";
+                $html .= $actionDropdownHtml;
+            }
+            $html .= "</ul></div>$rowActionHtml";
             
 
-            $html .= <<< HTML
-<a href="$url" class="btn btn-default $classes">$editName</a>
-HTML;
-
-        }
-
-        if ($this->isEnabledDelete()) {
-            $url = $this->getDeleteLink($bean->id);
-            $deleteName = $this->deleteName;
-            $isAllowDelete = true;
-            $isAllowDeleteClause = $this->getIsAllowDeleteClause();
-            if($isAllowDeleteClause) {
-                $isAllowDelete = $isAllowDeleteClause($bean);
+        } else if($this->getActionButtonType() == "button") {
+            $html = "<div class='btn-group'>";
+            if ($this->isEnabledView() && $isBeanReadOnly) {
+                $url = $this->getViewLink($bean->id);
+                $viewName = $this->viewName;
+                $classes = "$this->commonButtonClasses";            
+    
+                $html .= <<< HTML
+    <a href="$url" class="btn btn-default $classes">$viewName</a>
+    HTML;
+                $hasActionButtons = true;
             }
-            $classes = "$this->commonButtonClasses";
-            if(!$isAllowDelete) {
-                $url = "";
-                $classes .= " disabled";
+    
+            if ($this->isEnabledEdit() && !$isBeanReadOnly) {
+                $url = $this->getEditLink($bean->id);
+                $editName = $this->editName;
+                $isAllowEdit = true;
+                $isAllowEditClause = $this->getIsAllowEditClause();
+                if($isAllowEditClause) {
+                    $isAllowEdit = $isAllowEditClause($bean);
+                }
+                $classes = "$this->commonButtonClasses";
+                if(!$isAllowEdit) {
+                    $url = "#";
+                    $classes .= " disabled";
+                }
+                
+    
+                $html .= <<< HTML
+    <a href="$url" class="btn btn-default $classes">$editName</a>
+    HTML;
+                
             }
-
-            $html .= <<< HTML
- <a class="btn-delete btn btn-danger $classes" href="javascript:void(0)" data-id="$bean->id" data-url="$url">$deleteName</a>
-HTML;
+    
+            if ($this->isEnabledDelete()) {
+                $url = $this->getDeleteLink($bean->id);
+                $deleteName = $this->deleteName;
+                $isAllowDelete = true;
+                $isAllowDeleteClause = $this->getIsAllowDeleteClause();
+                if($isAllowDeleteClause) {
+                    $isAllowDelete = $isAllowDeleteClause($bean);
+                }
+                $classes = "$this->commonButtonClasses";
+                if(!$isAllowDelete) {
+                    $url = "";
+                    $classes .= " disabled";
+                }
+    
+                $html .= <<< HTML
+     <a class="btn-delete btn btn-danger $classes" href="javascript:void(0)" data-id="$bean->id" data-url="$url">$deleteName</a>
+    HTML;
+                $hasActionButtons = true;
+            }
+            if($hasActionButtons) {
+                $html = "<div class='btn-group'>$html</div>";
+            }
+    
+            if ($this->getRowAction() != null) {
+                $c = $this->getRowAction();
+                $html .= $c($bean, $this->getCommonButtonClasses(), $this->getActionButtonType());
+            }
         }
 
-        if ($this->getRowAction() != null) {
-            $c = $this->getRowAction();
-            $html .= $c($bean, $this->getCommonButtonClasses());
-        }
+        
 
         return $html;
     }
@@ -1073,6 +1196,32 @@ HTML;
     }
 
     /**
+     * @param bool $echo
+     * @return string
+     * @throws NoBeanException
+     * @throws NoFieldException
+     */
+    public function renderViewOnlyView($echo = true)
+    {
+        $this->beforeRender();
+
+        if ($this->currentBean == null) {
+            throw new NoBeanException();
+        }
+
+        $html = $this->template->render($this->getViewTemplate(), [
+            "fields" => $this->getShowFields(),
+            "crud" => $this,
+            "layoutName" => $this->getLayoutName()
+        ]);
+
+        if ($echo) {
+            echo $html;
+        }
+        return $html;
+    }
+
+    /**
      * @param $name
      * @return Field
      */
@@ -1104,6 +1253,20 @@ HTML;
     public function getEditLink($id)
     {
         return str_replace(":id", $id, $this->editLink);
+    }
+
+    /**
+     * @param $id
+     * @return string
+     */
+    public function getViewLink($id)
+    {
+        return str_replace(":id", $id, $this->viewLink);
+    }
+
+    public function setViewLink($viewLink)
+    {
+        $this->viewLink = $viewLink;
     }
 
     /**
@@ -1199,6 +1362,9 @@ HTML;
         $this->currentBean = R::load($this->tableName, $id);
     }
 
+    public function setIsInsertUpdateUseTransaction($isInsertUpdateUseTransaction) {
+        $this->isInsertUpdateUseTransaction = $isInsertUpdateUseTransaction;
+    }
 
     /**
      * Store Data into Database
@@ -1207,25 +1373,43 @@ HTML;
      */
     public function insertBean($data)
     {
-        $bean = R::xdispense($this->tableName);
-
-        $result =  $this->saveBean($bean, $data);
-
-        if (empty($result->msg)) {
-            $result->msg = "The record has been created successfully.";
-            $result->class = "success";
-            $result->ok = true;
-        } else {
-            $result->ok = false;
-            $result->class = "danger";
+        if($this->isInsertUpdateUseTransaction) {
+            R::begin();
         }
+        try {
+            $bean = R::xdispense($this->tableName);
 
-        if ($this->afterInsertBean != null) {
-            $callable = $this->afterInsertBean;
-            $callable($bean, $result);
-        }
+            $result =  $this->saveBean($bean, $data);
+    
+            if (empty($result->msg)) {
+                $result->msg = "The record has been created successfully.";
+                $result->class = "success";
+                $result->ok = true;
+            } else {
+                $result->ok = false;
+                $result->class = "danger";
+            }
+    
+            if ($this->afterInsertBean != null) {
+                $callable = $this->afterInsertBean;
+                $callable($bean, $result);
+            }
 
-        return $result;
+            if($this->isInsertUpdateUseTransaction) {
+                if($result->ok) {
+                    R::commit();
+                } else {
+                    R::rollback();
+                }
+            }
+    
+            return $result;
+        } catch (\Exception $ex) {
+            if($this->isInsertUpdateUseTransaction) {
+                R::rollback();
+            }
+            throw $ex;
+        }        
     }
 
     /**
@@ -1274,26 +1458,44 @@ HTML;
      */
     public function updateBean($data)
     {
-        if ($this->currentBean ==null) {
-            throw new NoBeanException();
+        if($this->isInsertUpdateUseTransaction) {
+            R::begin();
         }
+        try {
+            if ($this->currentBean ==null) {
+                throw new NoBeanException();
+            }
+    
+            $result = $this->saveBean($this->currentBean, $data);
+    
+            // Return result
+            if (empty($result->msg)) {
+                $result->msg = "Saved.";
+                $result->class = "success";
+            } else {
+                $result->class = "danger";
+            }
+    
+            if ($this->afterUpdateBean != null) {
+                $callable = $this->afterUpdateBean;
+                $callable($this->currentBean, $result);
+            }
 
-        $result = $this->saveBean($this->currentBean, $data);
-
-        // Return result
-        if (empty($result->msg)) {
-            $result->msg = "Saved.";
-            $result->class = "success";
-        } else {
-            $result->class = "danger";
+            if($this->isInsertUpdateUseTransaction) {
+                if($result->ok) {
+                    R::commit();
+                } else {
+                    R::rollback();
+                }
+            }
+    
+            return $result;
+        } catch (\Exception $ex) {
+            if($this->isInsertUpdateUseTransaction) {
+                R::rollback();
+            }
+            throw $ex;
         }
-
-        if ($this->afterUpdateBean != null) {
-            $callable = $this->afterUpdateBean;
-            $callable($this->currentBean, $result);
-        }
-
-        return $result;
     }
 
     /**
@@ -1305,109 +1507,132 @@ HTML;
      */
     protected function saveBean($bean, $data)
     {
-        // Handle File Field that may not in the $data, because Filename always go into $_FILES.
-        foreach ($_FILES as $fieldName => $file) {
-            $data[$fieldName] = $file["name"];
-        }
-
-        // Store Showing fields only
-        $fields = $this->getShowFields();
-
-        foreach ($fields as $field) {
-            $fieldType = $field->getFieldType();
-
-            // Check is unique
-            if ($field->isUnique()) {
-
-                // Try to find duplicate beans
-                $fieldName = $field->getName();
-                $duplicateBeans = R::find($bean->getMeta('type'), " $fieldName = ? ", [$data[$field->getName()]]);
-
-                if (count($duplicateBeans) > 0) {
-                    // TODO
+        $result = new Result();
+        try {
+            if($bean->id > 0) {
+                $isBeanReadOnlyClause = $this->getIsBeanReadOnlyClause();
+                if($isBeanReadOnlyClause && $isBeanReadOnlyClause($bean)) {
+                    throw new EditReadOnlyRecordException();
                 }
             }
-
-            if($fieldType->getBeforeSaveBeanClosure() != null) {
-                $beforeSaveBeanClosure = $fieldType->getBeforeSaveBeanClosure();
-                $beforeSaveBeanClosure($bean, $field->getStoreValue($data));
-            } else if ($field->getFieldRelation() == Field::MANY_TO_MANY) {
-                // 1. Many to many
-
-                // http://www.redbeanphp.com/many_to_many
-                $keyName = "shared" . ucfirst($field->getName()) . "List";
-
-                // Clear the current list (tableB_tableA)
-                try {
-                    $tableName = $this->getTableName() . "_" . $field->getName();
-                    $idName = $this->getTableName() . "_id";
-                    R::exec("DELETE FROM $tableName WHERE $idName = ?", [$bean->id]);
-                } catch (\Exception $ex) {
-                }
-
-                // Clear the current list (tableA_tableB)
-                try {
-                    $tableName = $field->getName() . "_" . $this->getTableName();
-                    $idName = $this->getTableName() . "_id";
-                    R::exec("DELETE FROM $tableName WHERE $idName = ?", [$bean->id]);
-                } catch (\Exception $ex) {
-                }
-
-                // If User have checked a value in checkbox
-                if (isset($data[$field->getName()])) {
-                    $valueList = $data[$field->getName()];
-                    $slots = R::genSlots($valueList);
-                    $relatedBeans = R::find($field->getName(), " id IN ($slots)", $valueList);
-
-                    foreach ($relatedBeans as $relatedBean) {
-                        $bean->{$keyName}[] = $relatedBean;
+            // Handle File Field that may not in the $data, because Filename always go into $_FILES.
+            foreach ($_FILES as $fieldName => $file) {
+                $data[$fieldName] = $file["name"];
+            }
+    
+            // Store Showing fields only
+            $fields = $this->getShowFields();
+    
+            foreach ($fields as $field) {
+                $fieldType = $field->getFieldType();
+    
+                // Check is unique
+                if ($field->isUnique()) {
+    
+                    // Try to find duplicate beans
+                    $fieldName = $field->getName();
+                    $duplicateBeans = R::find($bean->getMeta('type'), " $fieldName = ? ", [$data[$field->getName()]]);
+    
+                    if (count($duplicateBeans) > 0) {
+                        // TODO
                     }
                 }
-
-            } else if ($field->getFieldRelation() == Field::ONE_TO_MANY) {
-                // TODO One to many
-
-            } else if (! $field->isStorable()) {
-
-                // 2. If not storable, skip
-                continue;
-
-            } elseif ($field->getFieldRelation() == Field::NORMAL) {
-                // 3.Normal data field
-
-                $value = $field->getStoreValue($data);
-
-                if ($value == KKsonCRUD::NULL) {
-                    $value = null;
+    
+                if($fieldType->getBeforeSaveBeanClosure() != null) {
+                    $beforeSaveBeanClosure = $fieldType->getBeforeSaveBeanClosure();
+                    $beforeSaveBeanClosure($bean, $field->getStoreValue($data));
+                } else if ($field->getFieldRelation() == Field::MANY_TO_MANY) {
+                    // 1. Many to many
+    
+                    // http://www.redbeanphp.com/many_to_many
+                    $keyName = "shared" . ucfirst($field->getName()) . "List";
+    
+                    // Clear the current list (tableB_tableA)
+                    try {
+                        $tableName = $this->getTableName() . "_" . $field->getName();
+                        $idName = $this->getTableName() . "_id";
+                        R::exec("DELETE FROM $tableName WHERE $idName = ?", [$bean->id]);
+                    } catch (\Exception $ex) {
+                    }
+    
+                    // Clear the current list (tableA_tableB)
+                    try {
+                        $tableName = $field->getName() . "_" . $this->getTableName();
+                        $idName = $this->getTableName() . "_id";
+                        R::exec("DELETE FROM $tableName WHERE $idName = ?", [$bean->id]);
+                    } catch (\Exception $ex) {
+                    }
+    
+                    // If User have checked a value in checkbox
+                    if (isset($data[$field->getName()])) {
+                        $valueList = $data[$field->getName()];
+                        $slots = R::genSlots($valueList);
+                        $relatedBeans = R::find($field->getName(), " id IN ($slots)", $valueList);
+    
+                        foreach ($relatedBeans as $relatedBean) {
+                            $bean->{$keyName}[] = $relatedBean;
+                        }
+                    }
+    
+                } else if ($field->getFieldRelation() == Field::ONE_TO_MANY) {
+                    // TODO One to many
+    
+                } else if (! $field->isStorable()) {
+    
+                    // 2. If not storable, skip
+                    continue;
+    
+                } elseif ($field->getFieldRelation() == Field::NORMAL) {
+                    // 3.Normal data field
+    
+                    $value = $field->getStoreValue($data);
+    
+                    if ($value == KKsonCRUD::NULL) {
+                        $value = null;
+                    }
+    
+                    // Validate the value
+                    if ($field->isStorable())
+                        $validateResult = $field->validate($value, $data);
+                    else {
+                        // TODO: check non-storable?
+                        $validateResult = true;
+                    }
+    
+                    // If validate failed, return result object.
+                    if ($validateResult !== true) {
+                        $result = new Result();
+                        $result->ok = false;
+                        $result->id = @$bean->id;
+                        $result->msg = $validateResult;
+                        $result->fieldName = $field->getName();
+                        $result->class = "danger";
+                        return $result;
+                    }
+    
+                    // Set the value to the current bean directly
+                    $bean->{$field->getName()} = $value;
+    
                 }
-
-                // Validate the value
-                if ($field->isStorable())
-                    $validateResult = $field->validate($value, $data);
-                else {
-                    // TODO: check non-storable?
-                    $validateResult = true;
-                }
-
-                // If validate failed, return result object.
-                if ($validateResult !== true) {
-                    $result = new Result();
-                    $result->id = @$bean->id;
-                    $result->msg = $validateResult;
-                    $result->fieldName = $field->getName();
-                    $result->class = "danger";
-                    return $result;
-                }
-
-                // Set the value to the current bean directly
-                $bean->{$field->getName()} = $value;
-
             }
+        } catch (EditReadOnlyRecordException $ex) {
+            $result->ok = false;
+            $result->class = "danger";
+
+            if ($bean->id > 0) {
+                $callback = $this->getOnUpdateError();
+                $result->msg = $callback($ex->getMessage(), $ex);
+            } else {
+                $callback = $this->getOnInsertError();
+                $result->msg = $callback($ex->getMessage(), $ex);
+            }
+            return $result;
         }
+
 
         // Store
         // Return result object
-        $result = new Result();
+        
 
         try {
 
@@ -1447,11 +1672,11 @@ HTML;
 
 
             if ($bean->id > 0) {
-                $callback = $this->onUpdateError;
-                $result->msg = $callback($ex->getMessage());
+                $callback = $this->getOnUpdateError();
+                $result->msg = $callback($ex->getMessage(), $ex);
             } else {
-                $callback = $this->onInsertError;
-                $result->msg = $callback($ex->getMessage());
+                $callback = $this->getOnInsertError();
+                $result->msg = $callback($ex->getMessage(), $ex);
             }
 
         }
@@ -1525,6 +1750,16 @@ HTML;
         return $this->enableEdit;
     }
 
+    public function enableView($bool)
+    {
+        $this->enableView = $bool;
+    }
+
+    public function isEnabledView() : bool
+    {
+        return $this->enableView;
+    }
+
     public function isEnabledDelete() : bool
     {
         return $this->enableDelete;
@@ -1590,6 +1825,19 @@ HTML;
     public function setEditTemplate($editTemplate)
     {
         $this->editTemplate = $editTemplate;
+    }
+
+    public function getViewTemplate()
+    {
+        if ($this->viewTemplate != null)
+            return $this->viewTemplate;
+
+        return $this->theme . "::view";
+    }   
+
+    public function setViewTemplate($viewTemplate)
+    {
+        $this->viewTemplate = $viewTemplate;
     }
 
     /**
@@ -1952,6 +2200,16 @@ HTML;
         $this->editName = $editName;
     }
 
+    public function getViewName()
+    {
+        return $this->viewName;
+    }
+
+    public function setViewName($viewName)
+    {
+        $this->viewName = $viewName;
+    }   
+
     /**
      * @return string
      */
@@ -2169,5 +2427,48 @@ HTML;
 
     public function getCommonButtonClasses() {
         return $this->commonButtonClasses;
+    }
+
+    public function getIsBeanReadOnlyClause(): ?callable
+    {
+        return $this->isBeanReadOnlyClause;
+    }
+
+    public function setIsBeanReadOnlyClause(callable $isBeanReadOnlyClause): void
+    {
+        $this->isBeanReadOnlyClause = $isBeanReadOnlyClause;
+    }
+
+    public function setActionButtonType(string $actionButtonType) {
+        switch($actionButtonType) {
+            case "button":
+                $this->actionButtonType = "button";
+                break;
+            case "dropdown":
+                $this->actionButtonType = "dropdown";
+                break;
+            default:
+                throw new \Exception("Invalid action button type: $actionButtonType");
+        }
+    }
+
+    public function setActionButtonName(string $actionButtonName) {
+        $this->actionButtonName = $actionButtonName;
+    }
+
+    public function getActionButtonName() {
+        return $this->actionButtonName;
+    }
+
+    public function useActionDropdown() {
+        $this->setActionButtonType("dropdown");
+    }
+
+    public function useActionButton() {
+        $this->setActionButtonType("button");
+    }
+
+    public function getActionButtonType() {
+        return $this->actionButtonType;
     }
 }

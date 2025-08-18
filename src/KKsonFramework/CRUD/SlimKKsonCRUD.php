@@ -261,6 +261,7 @@ HTML;
         $this->setListViewLink(UrlUtils::burl("$this->groupName/$routeName/list" . $params));
         $this->setCreateLink(UrlUtils::burl("$this->groupName/$routeName/create" . $params));
         $this->setEditLink(UrlUtils::burl("$this->groupName/$routeName/edit/:id" . $params));
+        $this->setViewLink(UrlUtils::burl("$this->groupName/$routeName/view/:id" . $params));
         $this->setCreateSuccURL($this->getListViewLink());
 
         // Export URL
@@ -275,9 +276,11 @@ HTML;
         $this->setDeleteLink(UrlUtils::burl("$this->apiGroupName/$routeName/:id" . $params));
 
         $this->setEditName("編輯");
+        $this->setViewName("檢視");
         $this->setCreateName("新增");
         $this->setDeleteName("刪除");
         $this->setExportName("匯出Excel");
+        $this->setActionButtonName("動作");
     
         $this->field("creation_date")->setDisplayName("新增日期")->setDisabled(true)->setReadOnly(true);
         $this->field("creation_user_id")->setDisplayName("新增用戶")->setFieldType(new ReadOnlyUsernameField())->setDisabled(true)->setReadOnly(true);
@@ -553,8 +556,68 @@ HTML;
                 // If user show the ID field, force set it to readonly
                 $this->field("id")->setReadOnly(true);
 
+                if($this->isEnabledView()) {
+                    $isBeanReadOnlyClause = $this->getIsBeanReadOnlyClause();
+                    $isBeanReadOnly = false;
+                    if($isBeanReadOnlyClause) {
+                        $isBeanReadOnly = $isBeanReadOnlyClause($this->getBean());
+                    }
+                    if($isBeanReadOnly) {
+                        $newRoute = str_replace("/edit/", "/view/", $this->slim->request->getPath());
+                        $queryString = $this->slim->request->get();
+                        if($queryString) {
+                            $newRoute .= "?" . http_build_query($queryString);
+                        }
+                        $this->slim->redirect($newRoute);
+                        return;
+                    }
+                }
                 if ($this->isEnabledEdit()) {
                     $this->renderEditView();
+                }
+            });
+
+            /*
+             * Edit
+             */
+            $this->slim->get("/view/:id(/:p1(/:p2(/:p3(/:p4(/:p5)))))", function ($id, $p1 = null, $p2 = null, $p3 = null, $p4 = null, $p5 = null) use ($routeName, $customCRUDFunction, $tableName, $controller) {
+
+                // MUST INIT FIRST
+                $this->init($tableName, $routeName, $p1, $p2, $p3, $p4, $p5);
+
+                // Load Bean first
+                $this->loadBean($id);
+
+                // ID must be hidden
+                $this->field("id")->hide();
+
+                if ($this->configFunction != null) {
+                    $function = $this->configFunction;
+                    $result = $function();
+
+                    if ($result === false) {
+                        return;
+                    }
+                }
+
+                $result = $this->loadMainClosure($customCRUDFunction, $controller, $p1, $p2, $p3, $p4, $p5);
+
+                if ($result === false) {
+                    return;
+                }
+
+                $result = $this->loadEditClosure($controller, $p1, $p2, $p3, $p4, $p5);
+
+                if ($result === false) {
+                    return;
+                }
+
+                foreach($this->getShowFields() as $field) {
+                    $field->setReadOnly(true)->setDisabled(true);
+                }
+
+                if ($this->isEnabledView()) {
+                    $this->renderViewOnlyView();
                 }
             });
 

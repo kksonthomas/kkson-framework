@@ -352,7 +352,7 @@ var KKsonCRUD = /** @class */ (function () {
                         dataType: 'json',
                     }).done(function (data) {
                         //btn.parents('tr').remove();
-                        if (data.status == 'succ') {
+                        if (data.ok === true) {
                             AlertUtils.showSuccess("刪除記錄成功");
                             crud.getDataTable().ajax.reload();
                         }

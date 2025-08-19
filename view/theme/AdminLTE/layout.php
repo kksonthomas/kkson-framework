@@ -165,7 +165,7 @@ $isLoginAs = Auth::isLoginAs();
 <script src="/vendor/almasaeed2010/adminlte/plugins/bootstrap-switch/js/bootstrap-switch.min.js"></script>
 
 <script src="/vendor/almasaeed2010/adminlte/dist/js/adminlte.min.js?v=3.2.0"></script>
-<script src="/vendor/kksonthomas/kkson-framework/js/KKsonCRUD.js?v=2"></script>
+<script src="/vendor/kksonthomas/kkson-framework/js/KKsonCRUD.js?v=3"></script>
 <script src="/vendor/kksonthomas/kkson-framework/js/backend.js"></script>
 
 <script>

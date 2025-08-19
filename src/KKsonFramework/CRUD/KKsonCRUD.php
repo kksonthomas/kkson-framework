@@ -135,6 +135,11 @@ class KKsonCRUD
     /**
      * @var callable
      */
+    protected $afterDeleteBean = null;
+
+    /**
+     * @var callable
+     */
     protected $beforeUpdateBean = null;
 
     /**
@@ -145,7 +150,12 @@ class KKsonCRUD
     /**
      * @var callable
      */
-    protected $beforeStoreEachField = null;
+    protected $beforeDeleteBean = null;
+
+    /**
+     * @var callable
+     */
+    protected $deleteBeanNameClause = null;
 
     /**
      * @var string
@@ -660,7 +670,7 @@ HTML;
             
 
         } else if($this->getActionButtonType() == "button") {
-            $html = "<div class='btn-group'>";
+            $html = "";
             if ($this->isEnabledView() && $isBeanReadOnly) {
                 $url = $this->getViewLink($bean->id);
                 $viewName = $this->viewName;
@@ -720,9 +730,9 @@ HTML;
                 $c = $this->getRowAction();
                 $html .= $c($bean, $this->getCommonButtonClasses(), $this->getActionButtonType());
             }
+        } else {
+            throw new \Exception("Invalid action button type: " . $this->getActionButtonType());
         }
-
-        
 
         return $html;
     }
@@ -1428,6 +1438,11 @@ HTML;
         $this->afterInsertBean = $afterInsertBean;
     }
 
+    public function afterDelete($afterDeleteBean)
+    {
+        $this->afterDeleteBean = $afterDeleteBean;
+    }
+
     /**
      */
     public function beforeUpdate($beforeUpdateBean)
@@ -1444,10 +1459,14 @@ HTML;
         $this->beforeInsertBean = $beforeInsertBean;
     }
 
-
-    public function beforeStoreEachField($closure)
+    public function beforeDelete($beforeDeleteBean)
     {
-        $this->beforeStoreEachField = $closure;
+        $this->beforeDeleteBean = $beforeDeleteBean;
+    }
+
+    public function deleteBeanNameClause($deleteBeanNameClause)
+    {
+        $this->deleteBeanNameClause = $deleteBeanNameClause;
     }
 
     /**
@@ -1686,15 +1705,53 @@ HTML;
 
     public function deleteBean()
     {
-        if ($this->currentBean) {
-            $model = $this->currentBean->box();
-            if($model && $model instanceof BaseModelBase) {
-                /** @var BaseModelBase $model */
-                $model->deleteSelf();
+        $result = new Result();
+        $result->ok = true;
+
+        try {
+            if($this->isInsertUpdateUseTransaction) {
+                R::begin();
             }
-        } else {
-            throw new NoBeanException();
+
+            if ($this->currentBean) {
+
+                if($this->beforeDeleteBean != null) {
+                    $callable = $this->beforeDeleteBean;
+                    $callable($this->currentBean);
+                }
+
+                $model = $this->currentBean->box();
+                if($model && $model instanceof BaseModelBase) {
+                    /** @var BaseModelBase $model */
+                    $model->deleteSelf();
+                }
+
+                if($this->afterDeleteBean != null) {
+                    $callable = $this->afterDeleteBean;
+                    $callable($this->currentBean);
+                }
+
+            } else {
+                throw new NoBeanException();
+            }
+            $result->ok = true;
+            $result->class = "success";
+            $result->msg = "刪除成功";
+
+            if($this->isInsertUpdateUseTransaction) {
+                R::commit();
+            }
+
+        } catch (\Exception $ex) {
+            if($this->isInsertUpdateUseTransaction) {
+                R::rollback();
+            }
+            $result->ok = false;
+            $result->class = "danger";
+            $result->msg = $ex->getMessage();
         }
+
+        return $result;
     }
 
     public function getBean() {

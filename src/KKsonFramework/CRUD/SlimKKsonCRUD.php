@@ -926,11 +926,7 @@ HTML;
                 }
 
                 if ($this->isEnabledDelete()) {
-                    $this->deleteBean();
-
-                    $result = new \stdClass();
-                    $result->status = "succ";
-
+                    $result = $this->deleteBean();
                     echo json_encode($result);
                 }
 

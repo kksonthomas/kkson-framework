@@ -17,7 +17,7 @@ $crud->addBodyEndHTML(<<< HTML
             msg.removeClass(msg.data("addedClasses"));
         }
         if (result.class === "danger") {
-                AlertUtils.showError(result.msg);
+            AlertUtils.showError(result.msg);
         } else {
             if(result.msg === "Saved.") {
                 result.msg = "已儲存修改。";
@@ -30,7 +30,7 @@ $crud->addBodyEndHTML(<<< HTML
             msg.show().html(result.msg).data("addedClasses", addedClasses).addClass(addedClasses).data("fadeOutTimeout", setTimeout(function() {
                 $("#msg").fadeOut(1000).data("fadeOutTimeout", null);
             }, 4000));
-            ToastUtils.show(result.msg, result.class);
+            ToastUtils.showSuccess(result.msg);
         }
     });
 </script>

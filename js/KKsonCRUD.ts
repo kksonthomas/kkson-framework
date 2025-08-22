@@ -118,6 +118,8 @@ class KKsonCRUD {
                     if (self.ajaxFormCallback != null) {
                         self.ajaxFormCallback(result);
                     }
+                }).fail(function (data) {
+                    AlertUtils.showError("錯誤", "發生未預期的錯誤<br>請稍後再試 或 聯絡管理員");
                 });
                 return false;
             });
@@ -356,6 +358,12 @@ class KKsonCRUD {
                     }
                 } else {
                     dtStickyScrollbar.removeClass("sticky");
+                }
+
+                let scrollTop = $(this).scrollTop();
+                if(scrollTop != $(this).data("last-scroll-top")) {
+                    $(this).data("last-scroll-top", scrollTop);
+                    targetElem.scroll();
                 }
             }).resize(function () {
                 if (dtStickyScrollbar.hasClass("sticky")) {

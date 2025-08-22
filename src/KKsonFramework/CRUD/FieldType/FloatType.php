@@ -32,7 +32,7 @@ class FloatType extends FieldType
         $html  = <<< EOF
                 <div class="form-group">
             <label for="field-$name">$display</label>
-       <input step="$step" type="number" class="form-control" name="$name" value="$value" $readOnly $required />
+       <input step="$step" id="field-$name" type="number" class="form-control" name="$name" value="$value" $readOnly $required />
         </div>
 
 EOF;

@@ -18,7 +18,8 @@ use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
 use RedBeanPHP\RedException\SQL;
 use Stringy\Stringy;
-use KKsonFramework\CRUD\Exception\EditReadOnlyRecordException;
+use KKsonFramework\CRUD\Exception\EditReadOnlyRecordException;  
+use KKsonFramework\CRUD\Exception\DuplicateEntryException;
 
 class KKsonCRUD
 {
@@ -1546,14 +1547,17 @@ HTML;
                 $fieldType = $field->getFieldType();
     
                 // Check is unique
-                if ($field->isUnique()) {
+                if ($field->isUnique() && !$field->isDisabled()) {
     
                     // Try to find duplicate beans
                     $fieldName = $field->getName();
-                    $duplicateBeans = R::find($bean->getMeta('type'), " $fieldName = ? ", [$data[$field->getName()]]);
-    
-                    if (count($duplicateBeans) > 0) {
-                        // TODO
+                    $fieldValue = $data[$field->getName()];
+                    $dupBean = R::findOne($bean->getMeta('type'), " $fieldName = ? ", [$fieldValue]);
+                    if($dupBean && isset($dupBean->_deleted)) {
+                        $dupBean = R::findOne($bean->getMeta('type'), " $fieldName = ? AND _deleted = 0 ", [$fieldValue]);
+                    } 
+                    if($dupBean && $dupBean->id != $bean->id) {
+                        throw new DuplicateEntryException($field->getName(), $fieldValue);
                     }
                 }
     

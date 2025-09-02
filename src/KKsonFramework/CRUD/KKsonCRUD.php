@@ -592,6 +592,19 @@ class KKsonCRUD
 
         if($this->getActionButtonType() == "dropdown") {  
             $html = "";
+            $rowActionHtml = "";
+            $actionDropdownHtmlBefore = "";
+            $actionDropdownHtmlAfter = "";
+            if ($this->getRowAction() != null) {
+                $c = $this->getRowAction();
+                $rowActionHtml .= $c($bean, $this->getCommonButtonClasses(), $actionDropdownHtmlBefore);
+
+                if(is_array($actionDropdownHtmlBefore)) {
+                    $actionDropdownHtmlAfter = $actionDropdownHtmlBefore[1];
+                    $actionDropdownHtmlBefore = $actionDropdownHtmlBefore[0];
+                }
+            }
+
             if ($this->isEnabledView() && $isBeanReadOnly) {
                 $url = $this->getViewLink($bean->id);
                 $viewName = $this->viewName;
@@ -642,7 +655,7 @@ class KKsonCRUD
     HTML;
                 $hasActionButtons = true;
             }
-            if($hasActionButtons) {
+            if($hasActionButtons || !empty($actionDropdownHtmlBefore) || !empty($actionDropdownHtmlAfter)) {
                 $classes = "$this->commonButtonClasses";
                 $actionButtonName = $this->getActionButtonName();
                 $buttonId = "action-dropdown-button-$bean->id";
@@ -652,21 +665,11 @@ class KKsonCRUD
     $actionButtonName
   </button>
   <ul class="dropdown-menu" aria-labelledby="$buttonId">
+    $actionDropdownHtmlBefore
     $html
+    $actionDropdownHtmlAfter
 HTML;
-            }
-
-            $rowActionHtml = "";
-            $actionDropdownHtml = "";
-            if ($this->getRowAction() != null) {
-                $c = $this->getRowAction();
-                $rowActionHtml .= $c($bean, $this->getCommonButtonClasses(), $actionDropdownHtml);
-            }
-
-            if(!empty($actionDropdownHtml)) {
-                $html .= "<li class='dropdown-divider'></li>";
-                $html .= $actionDropdownHtml;
-            }
+            }        
             $html .= "</ul></div>$rowActionHtml";
             
 

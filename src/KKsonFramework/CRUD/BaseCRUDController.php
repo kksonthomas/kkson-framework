@@ -6,6 +6,7 @@ namespace KKsonFramework\CRUD;
 
 use KKsonFramework\CRUD\SearchFieldType\SearchCriteriaClasses\SearchCriteria;
 use KKsonFramework\CRUD\SearchFieldType\SearchFieldBase;
+use KKsonFramework\CRUD\SearchFieldType\TextSearchField;
 use RedBeanPHP\R;
 
 abstract class BaseCRUDController
@@ -106,13 +107,13 @@ abstract class BaseCRUDController
         return $this->searchableFieldMap;
     }
 
-    private function searchParamToSql($param, &$sqlData) {
+    private function searchParamToSql($param, &$sqlData, $allowNotDefinedSearchableField = false) {
         if(count($param) == 2) {
             //group
             $sqlList = [];
             $data = [];
             foreach ($param[1] as $p) {
-                $sqlList[] = $this->searchParamToSql($p, $data);
+                $sqlList[] = $this->searchParamToSql($p, $data, $allowNotDefinedSearchableField);
             }
             if(count($sqlList)) {
                 $sqlData = array_merge($sqlData, $data);
@@ -127,6 +128,9 @@ abstract class BaseCRUDController
             $keyword = $param[2] instanceof \stdClass ? $param[2]->id : $param[2]; // {id, text} object for select2 ajax
 
             $searchField = $this->getSearchableField($fieldName);
+            if(!$searchField && $allowNotDefinedSearchableField) {
+                $searchField = new TextSearchField($fieldName);
+            }
 
             $callback = $searchField->getProcessSearchToSqlCallback();
 
@@ -197,23 +201,45 @@ abstract class BaseCRUDController
         $this->crud->setData("searchableFieldMap", $this->getSearchableFieldMap());
         // handle search
         $q = $this->crud->getSlim()->request->params("q");
-        if($q === null) {
-            return;
-        }
-        
-        $decodedQ = base64_decode(rawurldecode($q));
-        $json = urldecode($decodedQ);
-        
-        $searchParam = json_decode($json);
-        if($searchParam) {
-            $this->whereClauses[] = $this->searchParamToSql($searchParam, $this->sqlData);
+        if($q !== null) {
+            $decodedQ = base64_decode(rawurldecode($q));
+            $json = urldecode($decodedQ);
+            
+            $searchParam = json_decode($json);
+            if($searchParam) {
+                $this->whereClauses[] = $this->searchParamToSql($searchParam, $this->sqlData);
+            }
+    
+            //temp fix for export excel
+            if(!empty($q)) {
+                $paramString = http_build_query(["q" => $q]);
+                $this->crud->setExportLink($this->crud->getExportLink() . "?" .  $paramString);
+            }
         }
 
-        //temp fix for export excel
-        if(!empty($q)) {
-            $paramString = http_build_query(["q" => $q]);
-            $this->crud->setExportLink($this->crud->getExportLink() . "?" .  $paramString);
+        $columns = $this->crud->getSlim()->request->params("columns", []);
+        $colSearchParams = [];
+        $fields = [null, ...$this->crud->getShowFields()];
+        foreach($columns as $column) {
+            $fixeds = @$column["search"]["fixed"];
+            if($fixeds) {
+                foreach($fixeds as $fixed) {    
+                    if($fixed["name"] == "kkson-crud-col-search") {
+                        $details = json_decode($fixed["term"]);
+                        $field = $fields[$column["data"]];
+                        $colSearchParams[] = [
+                            $field->getName(),
+                            $details->logic,
+                            $details->term
+                        ];
+                    }
+                }
+            }
         }
+        if(count($colSearchParams)) {
+            $this->whereClauses[] = $this->searchParamToSql(["AND", $colSearchParams], $this->sqlData, true);
+        }
+        
     }
 
     public static function getSearchParam($q) {
@@ -295,10 +321,10 @@ abstract class BaseCRUDController
         $fieldSQLs = ["$this->baseTableAlias.*"];
         foreach ($this->crud->getFields() as $showField) {
             $searchableField = $this->getSearchableField($showField->getName());
-            if($searchableField && $searchableField->getFieldSql(false)) {
-                $fieldSQLs[] = $searchableField->getFieldSql() . " AS " . $showField->getName();
-            } else if($showField->getSql()) {
+            if($showField->getSql()) {
                 $fieldSQLs[] = $showField->getSql() . " AS " . $showField->getName();
+            } else if($searchableField && $searchableField->getFieldSql(false)) {
+                $fieldSQLs[] = $searchableField->getFieldSql() . " AS " . $showField->getName();
             }
         }
         $fieldSql = implode(", ", $fieldSQLs);

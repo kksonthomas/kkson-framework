@@ -205,7 +205,7 @@ class KKsonCRUD {
      * @param tableURL
      * @param enableSearch
      * @param enableSorting
-     * @param {} customData
+     * @param customData
      */
     public initListView(ajaxOptions, tableURL: string, enableSearch: boolean = true, enableSorting: boolean = true, customData = null) {
         let self = this;
@@ -223,14 +223,10 @@ class KKsonCRUD {
                 self.refresh();
             },
             "bStateSave": true,
-            "fnStateSave": function (oSettings, oData) {
-                localStorage.setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
-            },
-            "fnStateLoad": function (oSettings) {
-                return JSON.parse(localStorage.getItem('DataTables_' + window.location.pathname));
-            },
             "scrollX": true,
-            "colReorder": true,
+            "colReorder": {
+                "headerRows": [0]
+            },
             "fixedHeader": {
                 "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight() -5
             },
@@ -280,7 +276,11 @@ class KKsonCRUD {
         }
         
         if (customData != null) {
-            data = this.mergeObject(data, customData);
+            if(typeof customData === "function") {
+                data = this.mergeObject(data, customData(data));
+            } else {
+                data = this.mergeObject(data, customData);
+            }
         }
 
         if (!!ajaxOptions) {

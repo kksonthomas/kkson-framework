@@ -163,7 +163,7 @@ var KKsonCRUD = /** @class */ (function () {
      * @param tableURL
      * @param enableSearch
      * @param enableSorting
-     * @param {} customData
+     * @param customData
      */
     KKsonCRUD.prototype.initListView = function (ajaxOptions, tableURL, enableSearch, enableSorting, customData) {
         var _this = this;
@@ -184,14 +184,10 @@ var KKsonCRUD = /** @class */ (function () {
                 self.refresh();
             },
             "bStateSave": true,
-            "fnStateSave": function (oSettings, oData) {
-                localStorage.setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
-            },
-            "fnStateLoad": function (oSettings) {
-                return JSON.parse(localStorage.getItem('DataTables_' + window.location.pathname));
-            },
             "scrollX": true,
-            "colReorder": true,
+            "colReorder": {
+                "headerRows": [0]
+            },
             "fixedHeader": {
                 "headerOffset": $(".kkson-crud-table-header").outerHeight() + $(".main-header").outerHeight() - 5
             },
@@ -239,7 +235,12 @@ var KKsonCRUD = /** @class */ (function () {
             data = this.mergeObject(data, this.initListViewCustomData);
         }
         if (customData != null) {
-            data = this.mergeObject(data, customData);
+            if (typeof customData === "function") {
+                data = this.mergeObject(data, customData(data));
+            }
+            else {
+                data = this.mergeObject(data, customData);
+            }
         }
         if (!!ajaxOptions) {
             data.serverSide = true;

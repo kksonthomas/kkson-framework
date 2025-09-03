@@ -89,6 +89,7 @@ class KKsonCRUD
     protected bool $enableDelete = true;
     protected bool $enableCreate = true;
     protected bool $enableSearch = true;
+    protected bool $enableColSearch = false;
     protected bool $enableSorting = true;
     protected bool $enableExport = true;
 
@@ -2352,6 +2353,16 @@ HTML;
     public function enableSearch($enableSearch)
     {
         $this->enableSearch = $enableSearch;
+    }
+
+    public function isEnabledColSearch()
+    {
+        return $this->enableColSearch;
+    }
+
+    public function enableColSearch($enableColSearch)
+    {
+        $this->enableColSearch = $enableColSearch;
     }
 
     /**

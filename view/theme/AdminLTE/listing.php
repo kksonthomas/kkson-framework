@@ -19,6 +19,7 @@ $isAjax = ($crud->isAjaxListView()) ? "true" : "false";
 $jsonLink = $crud->getListViewJSONLink();
 $enableSearch = $crud->isEnabledSearch() ? "true" : "false";
 $enableSorting = $crud->isEnabledSorting() ? "true" : "false";
+$enableColSearch = $crud->isEnabledColSearch() ? "true" : "false";
 
 $crud->addJavaScriptCode(
     <<<JS
@@ -30,10 +31,51 @@ $crud->addJavaScriptCode(
     };
     let ajaxUrl = "$jsonLink";
     let enableSearch = $enableSearch;
+    let enableColSearch = $enableColSearch;
     let enableSorting = $enableSorting;
 
-    crud.initListView(isAjax?ajaxOptions:null, ajaxUrl, enableSearch, enableSorting, {
+    crud.initListView(isAjax?ajaxOptions:null, ajaxUrl, enableSearch, enableSorting, function(_originalData) {
+        return {
+            initComplete: function(settings) {
+                let api = settings.api;
+                _originalData.initComplete(settings);
 
+                if(enableColSearch) {
+                    api.columns().every(function () {
+                        let column = this;
+                        let title = column.header(0).textContent;
+
+                        let searchable = $(column.header(0)).data("searchable");
+                        if(searchable === false) {
+                            return;
+                        }
+        
+                        // Create input element
+                        let input = $('<input>').addClass('form-control form-control-sm').attr('placeholder', title).css('width', '100%');
+                        column.header(1).replaceChildren(input[0]);
+        
+                        // Event listener for user input
+                        let searchTimeout;
+                        input.on('keyup', () => {
+                            clearTimeout(searchTimeout);
+                            searchTimeout = setTimeout(() => {
+                                let fixed = column.search.fixed("kkson-crud-col-search");
+                                let oldTerm = fixed?.term ? JSON.parse(fixed?.term).term : undefined;
+                                column.search.fixed("kkson-crud-col-search", JSON.stringify({
+                                    term: input.val(),
+                                    logic: "contains"
+                                }));
+                                if (oldTerm !== input.val()) {
+                                    api.ajax.reload(() => {
+                                        ToastUtils.showSuccess("搜尋成功");
+                                    }, true);
+                                }
+                            }, 250);
+                        });
+                    });
+                }
+            }
+        }
     });
     
     $(function () {
@@ -83,13 +125,24 @@ $tableDisplayName = ($crud->getTableDisplayName() != "" ? $crud->getTableDisplay
                     <thead>
                         <tr>
                             <!-- colspan="2"-->
-                            <th data-dt-order="disable">動作</th>
+                            <th data-dt-order="disable" data-searchable="false">動作</th>
 
                             <!-- Column Header -->
                             <?php foreach ($fields as $field) : ?>
                                 <th data-dt-order="<?= $field->isSortable() ? "" : "disable" ?>"><?= $field->getDisplayName() ?></th>
                             <?php endforeach; ?>
                         </tr>
+                        <?php if ($crud->isEnabledColSearch()) : ?>
+                        <tr>
+                            <!-- colspan="2"-->
+                            <th data-dt-order="disable" data-searchable="false"></th>
+
+                            <!-- Column Header -->
+                            <?php foreach ($fields as $field) : ?>
+                                <th data-dt-order="disable"></th>
+                            <?php endforeach; ?>
+                        </tr>
+                        <?php endif; ?>
                     </thead>
                     <tbody>
                         <?php foreach ($list as $bean) : ?>

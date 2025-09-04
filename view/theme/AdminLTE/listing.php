@@ -129,7 +129,7 @@ $tableDisplayName = ($crud->getTableDisplayName() != "" ? $crud->getTableDisplay
 
                             <!-- Column Header -->
                             <?php foreach ($fields as $field) : ?>
-                                <th data-dt-order="<?= $field->isSortable() ? "" : "disable" ?>"><?= $field->getDisplayName() ?></th>
+                                <th data-dt-order="<?= $field->isSortable() ? "" : "disable" ?>" data-searchable="<?= $field->isSearchable() ? "true" : "false" ?>"><?= $field->getDisplayName() ?></th>
                             <?php endforeach; ?>
                         </tr>
                         <?php if ($crud->isEnabledColSearch()) : ?>

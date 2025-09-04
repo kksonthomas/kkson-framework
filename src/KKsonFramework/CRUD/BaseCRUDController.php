@@ -32,6 +32,10 @@ abstract class BaseCRUDController
      * @var SearchFieldBase[]
      */
     private $searchableFieldMap = [];
+    /**
+     * @var SearchFieldBase[]
+     */
+    private $searchableColFieldMap = [];
 
     private $defaultOrderByField = 'id';
     private $defaultOrderByDirection = 'DESC';
@@ -99,6 +103,30 @@ abstract class BaseCRUDController
         }
     }
 
+        /**
+     * @param SearchFieldBase $searchableField
+     * @throws \Exception
+     */
+    public function addSearchableColField($searchableColField) {
+        if(isset($this->searchableColFieldMap[$searchableColField->getName()])) {
+            throw new \Exception("Duplicated Searchable Col field definition: {$searchableColField->getName()}");
+        }
+        $this->searchableColFieldMap[$searchableColField->getName()] = $searchableColField;
+
+    }
+
+    /**
+     * @param $name
+     * @return SearchFieldBase
+     */
+    public function getSearchableColField($name) {
+        if(isset($this->searchableColFieldMap[$name])) {
+            return $this->searchableColFieldMap[$name];
+        } else {
+            return null;
+        }
+    }
+
     /**
      * @return SearchFieldBase[]
      */
@@ -107,13 +135,24 @@ abstract class BaseCRUDController
         return $this->searchableFieldMap;
     }
 
-    private function searchParamToSql($param, &$sqlData, $allowNotDefinedSearchableField = false) {
+    /**
+     * @return SearchFieldBase[]
+     */
+    public function getSearchableColFieldMap(): array
+    {
+        return $this->searchableColFieldMap;
+    }
+
+    private function searchParamToSql($param, &$sqlData, $allowNotDefinedSearchableField = false, $getSearchableFieldCallback = null) {
+        if(!$getSearchableFieldCallback) {
+            $getSearchableFieldCallback = [$this, "getSearchableField"];
+        }
         if(count($param) == 2) {
             //group
             $sqlList = [];
             $data = [];
             foreach ($param[1] as $p) {
-                $sqlList[] = $this->searchParamToSql($p, $data, $allowNotDefinedSearchableField);
+                $sqlList[] = $this->searchParamToSql($p, $data, $allowNotDefinedSearchableField, $getSearchableFieldCallback);
             }
             if(count($sqlList)) {
                 $sqlData = array_merge($sqlData, $data);
@@ -127,7 +166,7 @@ abstract class BaseCRUDController
             $cond = $param[1];
             $keyword = $param[2] instanceof \stdClass ? $param[2]->id : $param[2]; // {id, text} object for select2 ajax
 
-            $searchField = $this->getSearchableField($fieldName);
+            $searchField = $getSearchableFieldCallback($fieldName);
             if(!$searchField && $allowNotDefinedSearchableField) {
                 $searchField = new TextSearchField($fieldName);
             }
@@ -138,6 +177,7 @@ abstract class BaseCRUDController
                 $sql = $callback($searchField, $cond, $keyword, $sqlData);
             } else {
                 $sql = "";
+                $keyword = $keyword;
                 $processedKeyword = $keyword;
                 $operator = $cond;
 
@@ -199,6 +239,7 @@ abstract class BaseCRUDController
 
     public function initSearchFunction() {
         $this->crud->setData("searchableFieldMap", $this->getSearchableFieldMap());
+        $this->crud->setData("searchableColFieldMap", $this->getSearchableColFieldMap());
         // handle search
         $q = $this->crud->getSlim()->request->params("q");
         if($q !== null) {
@@ -237,7 +278,7 @@ abstract class BaseCRUDController
             }
         }
         if(count($colSearchParams)) {
-            $this->whereClauses[] = $this->searchParamToSql(["AND", $colSearchParams], $this->sqlData, true);
+            $this->whereClauses[] = $this->searchParamToSql(["AND", $colSearchParams], $this->sqlData, true, [$this, "getSearchableColField"]);
         }
         
     }
@@ -367,7 +408,9 @@ abstract class BaseCRUDController
             $pageLimit = $start !== null && $rowPerPage !== null ? "LIMIT $start, $rowPerPage" : "" ;
 
             $sql = "SELECT {$this->getSelectFieldsSql()} {$this->getSqlBody()} ORDER BY $sortField $sortOrder $pageLimit";
-            return R::convertToBeans($this->baseTableName, R::getAll($sql, $this->sqlData));
+            // R::fancyDebug(1);
+            $data = R::getAll($sql, $this->sqlData);
+            return R::convertToBeans($this->baseTableName, $data);
         });
         $this->crud->setCountListViewDataClosure(function($keyword) {
             $sql = "SELECT 

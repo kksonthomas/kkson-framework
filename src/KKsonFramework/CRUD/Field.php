@@ -84,6 +84,8 @@ class Field
 
     protected $sortable = true;
 
+    protected $searchable = true;
+
     /**
      * Validator Closure
      * @var callable[]
@@ -586,6 +588,17 @@ class Field
     public function setSortable(bool $sortable): Field
     {
         $this->sortable = $sortable;
+        return $this;
+    }
+
+    public function isSearchable(): bool
+    {
+        return $this->searchable;
+    }
+
+    public function setSearchable(bool $searchable): Field
+    {
+        $this->searchable = $searchable;
         return $this;
     }
 

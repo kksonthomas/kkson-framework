@@ -179,6 +179,13 @@ abstract class BaseModelBase extends SimpleModel
         }
     }
 
+    public function undeleteSelf() {
+        if(static::_enabledMimicDelete()) {
+            $this->_deleted = 0;
+            R::store($this);
+        }
+    }
+
     public function trash()
     {
         R::trash($this);

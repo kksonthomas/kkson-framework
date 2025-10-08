@@ -634,7 +634,7 @@ class KKsonCRUD
                 $html .= <<< HTML
     <li><a class="dropdown-item $classes" href="$url">$editName</a></li>
     HTML;
-                
+                $hasActionButtons = true;
             }
     
             if ($this->isEnabledDelete()) {

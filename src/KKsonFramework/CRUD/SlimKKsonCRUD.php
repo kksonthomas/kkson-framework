@@ -827,7 +827,7 @@ HTML;
                 $this->field("id")->hide();
 
                 // Insert into database
-                if ($this->isEnabledCreate()) {
+                if ($this->isEnabledCreate()) {       
                     $jsonObject = $this->insertBean($_POST);
 
                     $this->enableJSONResponse();

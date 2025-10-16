@@ -1395,7 +1395,6 @@ HTML;
             $bean = R::xdispense($this->tableName);
 
             $result =  $this->saveBean($bean, $data);
-    
             if (empty($result->msg)) {
                 $result->msg = "The record has been created successfully.";
                 $result->class = "success";
@@ -1405,10 +1404,14 @@ HTML;
                 $result->class = "danger";
             }
     
+
             if ($this->afterInsertBean != null) {
                 $callable = $this->afterInsertBean;
                 $callable($bean, $result);
             }
+            header("HTTP/1.1 400 Bad Request");
+            echo json_encode($result);
+            exit;
 
             if($this->isInsertUpdateUseTransaction) {
                 if($result->ok) {
@@ -1423,7 +1426,15 @@ HTML;
             if($this->isInsertUpdateUseTransaction) {
                 R::rollback();
             }
-            throw $ex;
+            $result->ok = false;
+            $result->class = "danger";
+            $result->msg = $ex->getMessage();
+
+            $onInsertError = $this->getOnInsertError();
+            if($onInsertError) {
+                $onInsertError($ex->getMessage(), $ex);
+            }
+            return $result;
         }        
     }
 
@@ -1518,7 +1529,14 @@ HTML;
             if($this->isInsertUpdateUseTransaction) {
                 R::rollback();
             }
-            throw $ex;
+            $result->ok = false;
+            $result->class = "danger";
+            $result->msg = $ex->getMessage();
+            $onUpdateError = $this->getOnUpdateError();
+            if($onUpdateError) {
+                $onUpdateError($ex->getMessage(), $ex);
+            }
+            return $result;
         }
     }
 
@@ -1532,181 +1550,145 @@ HTML;
     protected function saveBean($bean, $data)
     {
         $result = new Result();
-        try {
-            if($bean->id > 0) {
-                $isBeanReadOnlyClause = $this->getIsBeanReadOnlyClause();
-                if($isBeanReadOnlyClause && $isBeanReadOnlyClause($bean)) {
-                    throw new EditReadOnlyRecordException();
-                }
+        
+        if($bean->id > 0) {
+            $isBeanReadOnlyClause = $this->getIsBeanReadOnlyClause();
+            if($isBeanReadOnlyClause && $isBeanReadOnlyClause($bean)) {
+                throw new EditReadOnlyRecordException();
             }
-            // Handle File Field that may not in the $data, because Filename always go into $_FILES.
-            foreach ($_FILES as $fieldName => $file) {
-                $data[$fieldName] = $file["name"];
-            }
-    
-            // Store Showing fields only
-            $fields = $this->getShowFields();
-    
-            foreach ($fields as $field) {
-                $fieldType = $field->getFieldType();
-    
-                // Check is unique
-                if ($field->isUnique() && !$field->isDisabled()) {
-    
-                    // Try to find duplicate beans
-                    $fieldName = $field->getName();
-                    $fieldValue = $data[$field->getName()];
-                    $dupBean = R::findOne($bean->getMeta('type'), " $fieldName = ? ", [$fieldValue]);
-                    if($dupBean && isset($dupBean->_deleted)) {
-                        $dupBean = R::findOne($bean->getMeta('type'), " $fieldName = ? AND _deleted = 0 ", [$fieldValue]);
-                    } 
-                    if($dupBean && $dupBean->id != $bean->id) {
-                        throw new DuplicateEntryException($field->getName(), $fieldValue);
-                    }
-                }
-    
-                if($fieldType->getBeforeSaveBeanClosure() != null) {
-                    $beforeSaveBeanClosure = $fieldType->getBeforeSaveBeanClosure();
-                    $beforeSaveBeanClosure($bean, $field->getStoreValue($data));
-                } else if ($field->getFieldRelation() == Field::MANY_TO_MANY) {
-                    // 1. Many to many
-    
-                    // http://www.redbeanphp.com/many_to_many
-                    $keyName = "shared" . ucfirst($field->getName()) . "List";
-    
-                    // Clear the current list (tableB_tableA)
-                    try {
-                        $tableName = $this->getTableName() . "_" . $field->getName();
-                        $idName = $this->getTableName() . "_id";
-                        R::exec("DELETE FROM $tableName WHERE $idName = ?", [$bean->id]);
-                    } catch (\Exception $ex) {
-                    }
-    
-                    // Clear the current list (tableA_tableB)
-                    try {
-                        $tableName = $field->getName() . "_" . $this->getTableName();
-                        $idName = $this->getTableName() . "_id";
-                        R::exec("DELETE FROM $tableName WHERE $idName = ?", [$bean->id]);
-                    } catch (\Exception $ex) {
-                    }
-    
-                    // If User have checked a value in checkbox
-                    if (isset($data[$field->getName()])) {
-                        $valueList = $data[$field->getName()];
-                        $slots = R::genSlots($valueList);
-                        $relatedBeans = R::find($field->getName(), " id IN ($slots)", $valueList);
-    
-                        foreach ($relatedBeans as $relatedBean) {
-                            $bean->{$keyName}[] = $relatedBean;
-                        }
-                    }
-    
-                } else if ($field->getFieldRelation() == Field::ONE_TO_MANY) {
-                    // TODO One to many
-    
-                } else if (! $field->isStorable()) {
-    
-                    // 2. If not storable, skip
-                    continue;
-    
-                } elseif ($field->getFieldRelation() == Field::NORMAL) {
-                    // 3.Normal data field
-    
-                    $value = $field->getStoreValue($data);
-    
-                    if ($value == KKsonCRUD::NULL) {
-                        $value = null;
-                    }
-    
-                    // Validate the value
-                    if ($field->isStorable())
-                        $validateResult = $field->validate($value, $data);
-                    else {
-                        // TODO: check non-storable?
-                        $validateResult = true;
-                    }
-    
-                    // If validate failed, return result object.
-                    if ($validateResult !== true) {
-                        $result = new Result();
-                        $result->ok = false;
-                        $result->id = @$bean->id;
-                        $result->msg = $validateResult;
-                        $result->fieldName = $field->getName();
-                        $result->class = "danger";
-                        return $result;
-                    }
-    
-                    // Set the value to the current bean directly
-                    $bean->{$field->getName()} = $value;
-    
-                }
-            }
-        } catch (EditReadOnlyRecordException $ex) {
-            $result->ok = false;
-            $result->class = "danger";
-
-            if ($bean->id > 0) {
-                $callback = $this->getOnUpdateError();
-                $result->msg = $callback($ex->getMessage(), $ex);
-            } else {
-                $callback = $this->getOnInsertError();
-                $result->msg = $callback($ex->getMessage(), $ex);
-            }
-            return $result;
+        }
+        // Handle File Field that may not in the $data, because Filename always go into $_FILES.
+        foreach ($_FILES as $fieldName => $file) {
+            $data[$fieldName] = $file["name"];
         }
 
+        // Store Showing fields only
+        $fields = $this->getShowFields();
 
+        foreach ($fields as $field) {
+            $fieldType = $field->getFieldType();
+
+            // Check is unique
+            if ($field->isUnique() && !$field->isDisabled()) {
+
+                // Try to find duplicate beans
+                $fieldName = $field->getName();
+                $fieldValue = $data[$field->getName()];
+                $dupBean = R::findOne($bean->getMeta('type'), " $fieldName = ? ", [$fieldValue]);
+                if($dupBean && isset($dupBean->_deleted)) {
+                    $dupBean = R::findOne($bean->getMeta('type'), " $fieldName = ? AND _deleted = 0 ", [$fieldValue]);
+                } 
+                if($dupBean && $dupBean->id != $bean->id) {
+                    throw new DuplicateEntryException($field->getName(), $fieldValue);
+                }
+            }
+
+            if($fieldType->getBeforeSaveBeanClosure() != null) {
+                $beforeSaveBeanClosure = $fieldType->getBeforeSaveBeanClosure();
+                $beforeSaveBeanClosure($bean, $field->getStoreValue($data));
+            } else if ($field->getFieldRelation() == Field::MANY_TO_MANY) {
+                // 1. Many to many
+
+                // http://www.redbeanphp.com/many_to_many
+                $keyName = "shared" . ucfirst($field->getName()) . "List";
+
+                // Clear the current list (tableB_tableA)
+                try {
+                    $tableName = $this->getTableName() . "_" . $field->getName();
+                    $idName = $this->getTableName() . "_id";
+                    R::exec("DELETE FROM $tableName WHERE $idName = ?", [$bean->id]);
+                } catch (\Exception $ex) {
+                }
+
+                // Clear the current list (tableA_tableB)
+                try {
+                    $tableName = $field->getName() . "_" . $this->getTableName();
+                    $idName = $this->getTableName() . "_id";
+                    R::exec("DELETE FROM $tableName WHERE $idName = ?", [$bean->id]);
+                } catch (\Exception $ex) {
+                }
+
+                // If User have checked a value in checkbox
+                if (isset($data[$field->getName()])) {
+                    $valueList = $data[$field->getName()];
+                    $slots = R::genSlots($valueList);
+                    $relatedBeans = R::find($field->getName(), " id IN ($slots)", $valueList);
+
+                    foreach ($relatedBeans as $relatedBean) {
+                        $bean->{$keyName}[] = $relatedBean;
+                    }
+                }
+
+            } else if ($field->getFieldRelation() == Field::ONE_TO_MANY) {
+                // TODO One to many
+
+            } else if (! $field->isStorable()) {
+
+                // 2. If not storable, skip
+                continue;
+
+            } elseif ($field->getFieldRelation() == Field::NORMAL) {
+                // 3.Normal data field
+
+                $value = $field->getStoreValue($data);
+
+                if ($value == KKsonCRUD::NULL) {
+                    $value = null;
+                }
+
+                // Validate the value
+                if ($field->isStorable())
+                    $validateResult = $field->validate($value, $data);
+                else {
+                    // TODO: check non-storable?
+                    $validateResult = true;
+                }
+
+                // If validate failed, return result object.
+                if ($validateResult !== true) {
+                    $result = new Result();
+                    $result->ok = false;
+                    $result->id = @$bean->id;
+                    $result->msg = $validateResult;
+                    $result->fieldName = $field->getName();
+                    $result->class = "danger";
+                    return $result;
+                }
+
+                // Set the value to the current bean directly
+                $bean->{$field->getName()} = $value;
+
+            }
+        }
+        
         // Store
         // Return result object
-        
-
-        try {
-
-            if ($bean->id > 0) {
-
-                if ($this->beforeUpdateBean != null) {
-                    $callable = $this->beforeUpdateBean;
-                    $callable($this->currentBean);
-                }
-
-            } else {
-
-                if ($this->beforeInsertBean != null) {
-                    $callable = $this->beforeInsertBean;
-                    $callable($bean);
-                }
-
+        if ($bean->id > 0) {
+            if ($this->beforeUpdateBean != null) {
+                $callable = $this->beforeUpdateBean;
+                $callable($this->currentBean);
             }
-
-            $id = R::store($bean);
-            $needStore = false;
-            foreach ($fields as $field) {
-                $fieldType = $field->getFieldType();
-                if($fieldType->getAfterSaveBeanClosure() != null) {
-                    $afterSaveBeanClosure = $fieldType->getAfterSaveBeanClosure();
-                    $needStore |= !!$afterSaveBeanClosure($bean, $field->getStoreValue($data));
-                }
+        } else {
+            if ($this->beforeInsertBean != null) {
+                $callable = $this->beforeInsertBean;
+                $callable($bean);
             }
-            if($needStore) {
-                $id = R::store($bean);
-            }
-            $result->id = $id;
-            $result->redirect_url = Stringy::create($this->getCreateSuccURL())->replace("{id}", $id)->__toString();
-        } catch (\Exception $ex) {
-            $result->ok = false;
-            $result->class = "danger";
-
-
-            if ($bean->id > 0) {
-                $callback = $this->getOnUpdateError();
-                $result->msg = $callback($ex->getMessage(), $ex);
-            } else {
-                $callback = $this->getOnInsertError();
-                $result->msg = $callback($ex->getMessage(), $ex);
-            }
-
         }
+
+        $id = R::store($bean);
+        $needStore = false;
+        foreach ($fields as $field) {
+            $fieldType = $field->getFieldType();
+            if($fieldType->getAfterSaveBeanClosure() != null) {
+                $afterSaveBeanClosure = $fieldType->getAfterSaveBeanClosure();
+                $needStore |= !!$afterSaveBeanClosure($bean, $field->getStoreValue($data));
+            }
+        }
+        if($needStore) {
+            $id = R::store($bean);
+        }
+        $result->id = $id;
+        $result->redirect_url = Stringy::create($this->getCreateSuccURL())->replace("{id}", $id)->__toString();
 
         return $result;
     }

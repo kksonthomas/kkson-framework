@@ -48,6 +48,7 @@ class KKsonCRUD
     protected $listViewHeaderButtonHtml = null;
     protected string $commonButtonClasses = "";
     protected string $headerButtonClasses = "";
+    protected string $headerButtonGroupClasses = "";
 
     /**
      * @var string If it is null, the getter will return getListViewLink() instead of ths var.
@@ -2443,7 +2444,7 @@ HTML;
 
     public function getListViewRefreshButtonHtml() {
         return <<<HTML
-        <div class="btn-group">
+        <div class="btn-group {$this->getHeaderButtonGroupClasses()}">
             <button type="button" class="btn btn-default btnRefreshDatatable {$this->getHeaderButtonClasses()}"><i class="fa fa-sync"></i> 重新整理</button>
             <button type="button" class="btn btn-default dropdown-toggle dropdown-toggle-split {$this->getHeaderButtonClasses()}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="sr-only">Toggle Dropdown</span>
@@ -2457,7 +2458,7 @@ HTML;
 
     public function getDatatableColFilterButtonHtml() {
         return <<<HTML
-        <div class="crud-dt-colFilter-container btn-group">
+        <div class="crud-dt-colFilter-container btn-group {$this->getHeaderButtonGroupClasses()}">
         </div>
         HTML;
     }
@@ -2494,6 +2495,14 @@ HTML;
 
     public function getHeaderButtonClasses() {
         return $this->headerButtonClasses;
+    }
+
+    public function setHeaderButtonGroupClasses(string $headerButtonGroupClasses) {
+        $this->headerButtonGroupClasses = $headerButtonGroupClasses;
+    }
+
+    public function getHeaderButtonGroupClasses() {
+        return $this->headerButtonGroupClasses;
     }
 
     public function setCommonButtonClasses(string $commonButtonClasses) {

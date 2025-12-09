@@ -47,9 +47,9 @@ abstract class SearchFieldBase
      * @param $name
      * @param SlimKKsonCRUD|string $displayName
      * @param null $fieldSql
-     * @param callable|null $processSearchToSqlCallback
+     * @param callable|null $processSearchToSqlCallback function($searchField, $cond, $keyword, $sqlData)
      */
-    public function __construct($name, $displayName = null, $fieldSql = null, callable $processSearchToSqlCallback = null)
+    public function __construct($name, $displayName = null, $fieldSql = null, ?callable $processSearchToSqlCallback = null)
     {
         $this->name = $name;
         if($displayName instanceof KKsonCRUD) {

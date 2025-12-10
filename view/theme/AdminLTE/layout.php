@@ -10,6 +10,9 @@ use KKsonFramework\Utils\UrlUtils;
 /** @var bool $disableLayoutFooterFixed */
 $disableLayoutFooterFixed = isset($disableLayoutFooterFixed) ? $disableLayoutFooterFixed : false;
 $isLoginAs = Auth::isLoginAs();
+
+$header = $this->section('header');
+$title = !empty($crud->getData("title")) ? $crud->getData("title") : ($header ? AppConfig::get()->appName() . " - " . strip_tags($header) : AppConfig::get()->appName());
 ?>
 <!DOCTYPE html>
 <html style="height: auto;">
@@ -18,7 +21,7 @@ $isLoginAs = Auth::isLoginAs();
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title><?=$crud->getData("title") ?></title>
+    <title><?=$title ?></title>
 
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&amp;display=fallback">
@@ -52,7 +55,7 @@ $isLoginAs = Auth::isLoginAs();
                 <?php if(App::isUAT()) :?>
                 <span class="badge badge-danger font-weight-bold mr-1" style="font-size: 26px;">UAT</span>
                 <?php endif; ?>
-                <span class="font-weight-bold" style="font-size: 22px;"><?=$this->section('header')?></span>
+                <span class="font-weight-bold" style="font-size: 22px;"><?=$header?></span>
 
             </li>
         </ul>

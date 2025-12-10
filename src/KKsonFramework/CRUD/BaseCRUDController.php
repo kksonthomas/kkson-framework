@@ -3,7 +3,7 @@
 
 namespace KKsonFramework\CRUD;
 
-
+use KKsonFramework\Conf\AppConfig;
 use KKsonFramework\CRUD\SearchFieldType\SearchCriteriaClasses\SearchCriteria;
 use KKsonFramework\CRUD\SearchFieldType\SearchFieldBase;
 use KKsonFramework\CRUD\SearchFieldType\TextSearchField;
@@ -337,8 +337,11 @@ abstract class BaseCRUDController
         return "$this->baseTableAlias.`$name`";
     }
 
-    public function setTableDisplayName($name) {
+    public function setTableDisplayName($name, $alsoSetTitle = true) {
         $this->crud->setData("tableDisplayName",$name);
+        if($alsoSetTitle) {
+            $this->crud->setData("title", AppConfig::get()->appName() . " - " . $name);
+        }
     }
 
     public function addJoinClause($tableName, $alias, $joinClause, $joinType = "") {

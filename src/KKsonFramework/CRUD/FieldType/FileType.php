@@ -33,7 +33,7 @@ class FileType extends FieldType
     }
 
     public function getPreviewHTMLTemplate() {
-        return '<a href="{fileURL}" target="_blank" class="btn btn-primary">Open ({fileURL})</a>';
+        return '<a href="{fileURL}" target="_blank" class="btn btn-primary">Open</a>';
     }
 
     public function render($echo = false)
@@ -71,11 +71,13 @@ class FileType extends FieldType
         </div>
     </div>
     
-    <div id="image-preview-$name" class="image-preview my-1">
-        $previewHTML
+    <div class="d-flex">
+        <div id="image-preview-$name" class="image-preview my-1">
+            $previewHTML
+        </div>
+        <button id="image-remove-$name" type="button" class="btn btn-danger my-1 ml-1" $hideRemoveButton>Remove</button>
     </div>
         
-    <button id="image-remove-$name" type="button" class="btn btn-danger" $hideRemoveButton>Remove File</button>
 </div>
 
 HTML;
@@ -122,13 +124,21 @@ HTML;
                 type: 'POST',
                 success: function (data) {
                     crud.setUploading(false); 
-                    let previewElement = $($previewTemplateEncoded.split("{fileURL}").join(RES_URL + data.url)); 
-                
-                    $("#image-preview-$name").html(previewElement);
-                    $("#field-$name").val(data.url);
-                    $("#image-remove-$name").show();
-                
-                    $("#upload-$name").removeAttr("required");
+                    if(data.status == "SUCC") {
+                        let previewElement = $($previewTemplateEncoded.split("{fileURL}").join(RES_URL + data.url)); 
+                    
+                        $("#image-preview-$name").html(previewElement);
+                        $("#field-$name").val(data.url);
+                        $("#image-remove-$name").show();
+                    
+                        $("#upload-$name").removeAttr("required");
+                    } else {
+                        AlertUtils.showError("上傳失敗", data.error.message);
+                    }
+                },
+                error: function (data) {
+                    crud.setUploading(false);
+                    AlertUtils.showError("錯誤", "上傳失敗, 未知錯誤");
                 }
             });
         });

@@ -10,7 +10,7 @@ use Slim\Http\Request;
 use KKsonFramework\Classes\Slim\Slim;
 use Stringy\Stringy;
 use KKsonFramework\Utils\UrlUtils;
-
+use KKsonFramework\Utils\FileUtils;
 class FrontendApp extends App
 {
 
@@ -180,7 +180,7 @@ class FrontendApp extends App
                 }
 
                 if (! in_array($ext, $this->allowExt)) {
-                    throw new \Exception("Format is not allowed.");
+                    throw new \Exception("Extension \"".$ext."\" is not allowed. Allowed extensions: ".implode(", ", $this->allowExt));
                 }
 
                 $filename = dechex(rand(1, 99999999)) . "-" . time() . "." . $ext;
@@ -196,9 +196,19 @@ class FrontendApp extends App
                 if (!file_exists($dir)) {
                     mkdir($dir, 0777, true);
                 }
-                move_uploaded_file($_FILES[$fieldName]["tmp_name"], $relativePath);
+                if(!move_uploaded_file($_FILES[$fieldName]["tmp_name"], $relativePath)) {
+                    throw new \Exception("Failed to move uploaded file");
+                }
 
                 $mime = mime_content_type($relativePath);
+                $mimeToExt = FileUtils::mime2ext($mime);
+                if (! in_array($mimeToExt, $this->allowExt)) {
+                    try {
+                        unlink($relativePath);
+                    } catch (\Exception $ex) {
+                    }
+                    throw new \Exception("Mime \"".$mime."\" is not allowed");
+                }
                 $output = [
                     "fileName" =>$filename,
                     "uploaded" => 1,

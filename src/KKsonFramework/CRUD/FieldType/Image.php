@@ -3,7 +3,6 @@
 namespace KKsonFramework\CRUD\FieldType;
 
 
-use KKsonFramework\CRUD\Exception\DirectoryPermissionException;
 use KKsonFramework\Utils\UrlUtils;
 
 class Image extends FileType
@@ -21,7 +20,7 @@ class Image extends FileType
         $this->width = $width;
     }
 
-    public function getPreviewHTMLTemplate() {
+    public function getPreviewHTMLTemplate($fileURL) {
         return '<a href="{fileURL}" class="d-flex justify-content-center border border-dark"><img src="{fileURL}" alt="" /></a>';
     }
 

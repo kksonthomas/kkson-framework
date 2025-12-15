@@ -10,15 +10,19 @@ use Stringy\Stringy;
 class FileType extends FieldType
 {
 
-    private $uploadPath;
-
+    protected $uploadPath;
+    protected $viewButtonText;
+    protected $removeButtonText;
+    protected $chooseFileText;
     protected $inputType = "file";
     protected $additionalAttr = "";
 
-    public function __construct($uploadPath = "upload/")
+    public function __construct($uploadPath = "upload/", $viewButtonText = "Open", $removeButtonText = "Remove", $chooseFileText = "Choose File")
     {
         $this->setUploadPath($uploadPath);
-
+        $this->viewButtonText = $viewButtonText;
+        $this->removeButtonText = $removeButtonText;
+        $this->chooseFileText = $chooseFileText;
         // Create a directory for Upload Path
         if (! file_exists($this->getUploadPath())) {
             mkdir($this->getUploadPath(), 0777, true);
@@ -32,8 +36,8 @@ class FileType extends FieldType
         }
     }
 
-    public function getPreviewHTMLTemplate() {
-        return '<a href="{fileURL}" target="_blank" class="btn btn-primary">Open</a>';
+    public function getPreviewHTMLTemplate($fileURL) {
+        return '<a href="{fileURL}" target="_blank" class="btn btn-primary">'.$this->viewButtonText.'</a>';
     }
 
     public function render($echo = false)
@@ -48,7 +52,7 @@ class FileType extends FieldType
         $additionalAttr = $this->additionalAttr;
 
         $uploadURL = UrlUtils::burl("kkson-crud/upload/json?fullpath=no");
-        $previewTemplate = $this->getPreviewHTMLTemplate();
+        $previewTemplate = $this->getPreviewHTMLTemplate($value);
         $previewTemplateEncoded = json_encode($previewTemplate);
 
         if ($value != "" && $value != null) {
@@ -67,7 +71,7 @@ class FileType extends FieldType
         <div class="custom-file">
             <input type="$inputType" class="custom-file-input" id="upload-$name" $readOnly data-required="$required" $additionalAttr />
             <input id="field-$name" type="hidden" name="$name" value="$value"  />
-            <label class="custom-file-label" for="upload-$name">Choose File</label>
+            <label class="custom-file-label" for="upload-$name">$this->chooseFileText</label>
         </div>
     </div>
     
@@ -75,7 +79,7 @@ class FileType extends FieldType
         <div id="image-preview-$name" class="image-preview my-1">
             $previewHTML
         </div>
-        <button id="image-remove-$name" type="button" class="btn btn-danger my-1 ml-1" $hideRemoveButton>Remove</button>
+        <button id="image-remove-$name" type="button" class="btn btn-danger my-1 ml-1" $hideRemoveButton>$this->removeButtonText</button>
     </div>
         
 </div>

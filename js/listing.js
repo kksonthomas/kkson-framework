@@ -379,18 +379,29 @@ function KKsonCRUDSearchingPane(formElem, config) {
         return encode ? encodeURIComponent(q) : q;
     };
 
+    this.updateExportBtnUrl = function() {
+        let q = self.toQueryParamString();
+        let btnExport = document.getElementById("btn-kksoncrud-export");
+        if(btnExport) {
+            let newExportUrl = new URL(btnExport.href);
+            if(q !== "null" && q !== "") {
+                newExportUrl.searchParams.set("q", q);
+            }
+
+            let hash = window.location.hash.replace(/^#/, "");
+            if(hash) {
+                newExportUrl.searchParams.set("hash", hash);
+            }
+            btnExport.href = newExportUrl.toString();
+        }
+    };
+
     this.formElem.submit(function(ev) {
         ev.preventDefault();
         let q = self.toQueryParamString();
         let newPageUrl = new URL(location);
-        let btnExport = document.getElementById("btn-kksoncrud-export");
         newPageUrl.searchParams.set("q", q !== "null" ? q : "");
-        if(btnExport) {
-            let newExportUrl = new URL(btnExport.href);
-            newExportUrl.searchParams.set("q", q !== "null" ? q : "");
-            btnExport.href = newExportUrl.toString();
-        }
-        
+        self.updateExportBtnUrl(q);
         history.pushState({}, "", newPageUrl);
         let newAjaxUrl = new URL(crud.getDataTable().ajax.url(), location);
         crud.getDataTable().ajax.url(newAjaxUrl.pathname + newPageUrl.search).load(() => {
@@ -398,12 +409,46 @@ function KKsonCRUDSearchingPane(formElem, config) {
         });
     });
 
-    window.addEventListener("popstate", (event) => {
+    this.updateDataTableFromUrl = function() {
         let newPageUrl = new URL(location);
         let newAjaxUrl = new URL(crud.getDataTable().ajax.url(), location);
-        crud.getDataTable().ajax.url(newAjaxUrl.pathname + newPageUrl.search).load();
+        //load col search from hash
+        let hash = location.hash.replace(/^#/, "");
+        let hashParts = hash.split("&");
+        //reset col search
+        crud.getDataTable().columns().every(function() {
+            let column = this;
+            let input = $(column.header(1)).find("input");
+            input.val("");
+            column.search.fixed("kkson-crud-col-search", null);
+        });
+
+        //load col search from hash
+        for(let i = 0; i < hashParts.length; i++) {
+            let part = hashParts[i];
+            let key = part.split("=")[0];
+            let value = part.split("=")[1];
+
+            if(key && value) {
+                let column = crud.getDataTable().column(key);
+                let input = $(column.header(1)).find("input");
+                input.val(value);
+                column.search.fixed("kkson-crud-col-search", JSON.stringify({
+                    term: value,
+                    logic: "contains"
+                }));
+            }
+        }
+        self.updateExportBtnUrl();
+        crud.getDataTable().ajax.url(newAjaxUrl.pathname + newPageUrl.search).load(() => {
+            ToastUtils.showSuccess("搜尋完成"); 
+        });
 
         this.loadFromGetParam();
+    };
+
+    window.addEventListener("popstate", (event) => {
+        this.updateDataTableFromUrl();
     });
 
     this.formElem.find(".btnResetSearch").click(ev => {
@@ -424,4 +469,5 @@ function KKsonCRUDSearchingPane(formElem, config) {
         }
 
     });
+    this.updateExportBtnUrl();
 }

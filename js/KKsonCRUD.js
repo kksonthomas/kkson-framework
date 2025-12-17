@@ -159,24 +159,22 @@ var KKsonCRUD = /** @class */ (function () {
     };
     /**
      *
-     * @param isAjax
-     * @param tableURL
+     * @param ajaxOptions
+     * @param ajaxUrl
      * @param enableSearch
      * @param enableSorting
+     * @param enableColSearch
      * @param customData
      */
-    KKsonCRUD.prototype.initListView = function (ajaxOptions, tableURL, enableSearch, enableSorting, customData) {
+    KKsonCRUD.prototype.initListView = function (config) {
         var _this = this;
-        if (enableSearch === void 0) { enableSearch = true; }
-        if (enableSorting === void 0) { enableSorting = true; }
-        if (customData === void 0) { customData = null; }
         var self = this;
         var data = {
             "pageLength": 25,
             "paging": true,
-            "ordering": enableSorting,
+            "ordering": config.enableSorting,
             "autoWidth": false,
-            "searching": enableSearch,
+            "searching": config.enableSearch,
             "info": true,
             "drawCallback": function (settings) {
                 self.crudDropdownEventInit();
@@ -194,9 +192,13 @@ var KKsonCRUD = /** @class */ (function () {
             "fixedColumns": {
                 "left": 2
             },
-            "initComplete": function () {
+            "initComplete": function (settings) {
+                var api = settings.api;
                 $('.dt-paging').first().appendTo('.ext-dt-paging');
                 $(".buttons-colvis").first().appendTo('.crud-dt-colFilter-container');
+                if (config.enableColSearch) {
+                    self.colSearchInit(api);
+                }
             },
             "layout": {
                 "topStart": {
@@ -234,25 +236,25 @@ var KKsonCRUD = /** @class */ (function () {
         if (this.initListViewCustomData != null) {
             data = this.mergeObject(data, this.initListViewCustomData);
         }
-        if (customData != null) {
-            if (typeof customData === "function") {
-                data = this.mergeObject(data, customData(data));
+        if (config.customData != null) {
+            if (typeof config.customData === "function") {
+                data = this.mergeObject(data, config.customData(data));
             }
             else {
-                data = this.mergeObject(data, customData);
+                data = this.mergeObject(data, config.customData);
             }
         }
-        if (!!ajaxOptions) {
+        if (!!config.ajaxOptions) {
             data.serverSide = true;
             data.processing = true;
             //data.searching = true;
             data.ajax = this.mergeObject({
-                url: tableURL,
+                url: config.ajaxUrl,
                 type: "POST",
                 data: {
                     "csrf_token": (csrfToken) ? csrfToken : "",
                 }
-            }, ajaxOptions);
+            }, config.ajaxOptions);
         }
         $(document).ready(function () {
             _this.table = $('#kkson-crud-table').DataTable(data);
@@ -265,6 +267,12 @@ var KKsonCRUD = /** @class */ (function () {
             });
             // Column Filter
             _this.columnFilter();
+            // Refresh Button
+            $(".btnRefreshDatatable").click(function () {
+                self.table.ajax.reload(function () {
+                    ToastUtils.showSuccess("重新整理成功");
+                });
+            });
         });
     };
     KKsonCRUD.prototype.crudDropdownEventInit = function () {
@@ -388,6 +396,60 @@ var KKsonCRUD = /** @class */ (function () {
     KKsonCRUD.prototype.resetColOrder = function () {
         this.table.colReorder.reset();
         ToastUtils.showSuccess("重設欄位順序成功");
+    };
+    KKsonCRUD.prototype.colSearchInit = function (api) {
+        api.columns().every(function () {
+            var column = this;
+            var title = column.header(0).textContent;
+            var searchable = $(column.header(0)).data("searchable");
+            if (searchable === false) {
+                return;
+            }
+            // Create input element
+            var input = $('<input>').addClass('form-control form-control-sm').attr('placeholder', title).css('width', '100%');
+            column.header(1).replaceChildren(input[0]);
+            // Event listener for user input
+            var searchTimeout;
+            input.on('keyup', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function () {
+                    var fixed = column.search.fixed("kkson-crud-col-search");
+                    var oldTerm = (fixed === null || fixed === void 0 ? void 0 : fixed.term) ? JSON.parse(fixed === null || fixed === void 0 ? void 0 : fixed.term).term : undefined;
+                    column.search.fixed("kkson-crud-col-search", JSON.stringify({
+                        term: input.val(),
+                        logic: "contains"
+                    }));
+                    if (oldTerm !== input.val()) {
+                        // Update the page URL hash to save the current column search parameter.
+                        // We'll use the column index and value as a key-value in the hash.
+                        try {
+                            // Collect all current col search values
+                            var colSearches_1 = {};
+                            api.columns().every(function (i) {
+                                var _input = $(this.header(1)).find("input");
+                                if (_input.length > 0) {
+                                    var searchValue = _input.val();
+                                    if (searchValue) {
+                                        colSearches_1[i] = searchValue;
+                                    }
+                                }
+                            });
+                            var newHashParts = [];
+                            for (var key in colSearches_1) {
+                                newHashParts.push(key + "=" + encodeURIComponent(colSearches_1[key]).replace(/%20/g, "+"));
+                            }
+                            window.location.hash = newHashParts.join("&");
+                        }
+                        catch (e) { /* ignore */ }
+                    }
+                }, 250);
+            });
+        });
+        window.dispatchEvent(new PopStateEvent("popstate"));
+        // if(window.location.hash.replace(/^#/, "") != "") {
+        //     api.ajax.reload(() => {
+        //     }, true);
+        // }
     };
     return KKsonCRUD;
 }());

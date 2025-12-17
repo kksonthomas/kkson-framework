@@ -34,56 +34,21 @@ $crud->addJavaScriptCode(
     let enableColSearch = $enableColSearch;
     let enableSorting = $enableSorting;
 
-    crud.initListView(isAjax?ajaxOptions:null, ajaxUrl, enableSearch, enableSorting, function(_originalData) {
-        return {
-            initComplete: function(settings) {
-                let api = settings.api;
-                _originalData.initComplete(settings);
-
-                if(enableColSearch) {
-                    api.columns().every(function () {
-                        let column = this;
-                        let title = column.header(0).textContent;
-
-                        let searchable = $(column.header(0)).data("searchable");
-                        if(searchable === false) {
-                            return;
-                        }
-        
-                        // Create input element
-                        let input = $('<input>').addClass('form-control form-control-sm').attr('placeholder', title).css('width', '100%');
-                        column.header(1).replaceChildren(input[0]);
-        
-                        // Event listener for user input
-                        let searchTimeout;
-                        input.on('keyup', () => {
-                            clearTimeout(searchTimeout);
-                            searchTimeout = setTimeout(() => {
-                                let fixed = column.search.fixed("kkson-crud-col-search");
-                                let oldTerm = fixed?.term ? JSON.parse(fixed?.term).term : undefined;
-                                column.search.fixed("kkson-crud-col-search", JSON.stringify({
-                                    term: input.val(),
-                                    logic: "contains"
-                                }));
-                                if (oldTerm !== input.val()) {
-                                    api.ajax.reload(() => {
-                                        ToastUtils.showSuccess("搜尋成功");
-                                    }, true);
-                                }
-                            }, 250);
-                        });
-                    });
+    crud.initListView({
+        ajaxOptions:(isAjax?ajaxOptions:null),
+        ajaxUrl:ajaxUrl,
+        enableSearch:enableSearch,
+        enableSorting:enableSorting,
+        enableColSearch:enableColSearch,
+        customData:function(_originalData) {
+            return {
+                initComplete: function(settings) {
+                    let api = settings.api;
+                    _originalData.initComplete(settings);
+                    //add custom initComplete code here
                 }
             }
         }
-    });
-    
-    $(function () {
-        $(".btnRefreshDatatable").click(function() {
-            crud.getDataTable().ajax.reload(() => {
-                ToastUtils.showSuccess("重新整理成功");
-            });
-        });
     });
 JS
 );

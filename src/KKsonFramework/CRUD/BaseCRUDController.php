@@ -261,17 +261,42 @@ abstract class BaseCRUDController
         $columns = $this->crud->getSlim()->request->params("columns", []);
         $colSearchParams = [];
         $fields = [null, ...$this->crud->getShowFields()];
-        foreach($columns as $column) {
-            $fixeds = @$column["search"]["fixed"];
-            if($fixeds) {
-                foreach($fixeds as $fixed) {    
-                    if($fixed["name"] == "kkson-crud-col-search") {
-                        $details = json_decode($fixed["term"]);
-                        $field = $fields[$column["data"]];
+        if(count($columns)) {
+            //decode from columns parameter
+            foreach($columns as $column) {
+                $fixeds = @$column["search"]["fixed"];
+                if($fixeds) {
+                    foreach($fixeds as $fixed) {    
+                        if($fixed["name"] == "kkson-crud-col-search") {
+                            $details = json_decode($fixed["term"]);
+                            if(isset($column["data"])) {
+                                $field = $fields[$column["data"]];
+                                if($field && isset($details->term)) {
+                                    $colSearchParams[] = [
+                                        $field->getName(),
+                                        $details->logic,
+                                        $details->term
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            //decode from hash parameter
+            $hash = $this->crud->getSlim()->request->params("hash", "");
+            if($hash) {
+                $hashParts = explode("&", $hash);
+                foreach($hashParts as $hashPart) {
+                    $key = explode("=", $hashPart)[0];
+                    $value = explode("=", $hashPart)[1];
+                    $field = $fields[$key];
+                    if($field) {
                         $colSearchParams[] = [
                             $field->getName(),
-                            $details->logic,
-                            $details->term
+                            "contains",
+                            $value
                         ];
                     }
                 }
@@ -280,7 +305,6 @@ abstract class BaseCRUDController
         if(count($colSearchParams)) {
             $this->whereClauses[] = $this->searchParamToSql(["AND", $colSearchParams], $this->sqlData, true, [$this, "getSearchableColField"]);
         }
-        
     }
 
     public static function getSearchParam($q) {

@@ -201,21 +201,29 @@ class KKsonCRUD {
 
     /**
      *
-     * @param isAjax
-     * @param tableURL
+     * @param ajaxOptions
+     * @param ajaxUrl
      * @param enableSearch
      * @param enableSorting
+     * @param enableColSearch
      * @param customData
      */
-    public initListView(ajaxOptions, tableURL: string, enableSearch: boolean = true, enableSorting: boolean = true, customData = null) {
+    public initListView(config: {
+        ajaxOptions?: {},
+        ajaxUrl: string,
+        enableSearch: boolean = true,
+        enableSorting: boolean = true,
+        enableColSearch: boolean = false,
+        customData?: {}
+    }) {
         let self = this;
 
         let data: {} = {
             "pageLength": 25,
             "paging": true,
-            "ordering": enableSorting,
+            "ordering": config.enableSorting,
             "autoWidth": false,
-            "searching": enableSearch,
+            "searching": config.enableSearch,
             "info": true,
             "drawCallback": function (settings) {
                 self.crudDropdownEventInit();
@@ -233,9 +241,13 @@ class KKsonCRUD {
             "fixedColumns": {
                 "left": 2
             },
-            "initComplete": function() {
+            "initComplete": function(settings) {
+                let api = settings.api;
                 $('.dt-paging').first().appendTo('.ext-dt-paging');
                 $(".buttons-colvis").first().appendTo('.crud-dt-colFilter-container');
+                if(config.enableColSearch) {
+                    self.colSearchInit(api);
+                }
             },
             "layout": {
                 "topStart": {
@@ -275,25 +287,25 @@ class KKsonCRUD {
             data = this.mergeObject(data, this.initListViewCustomData);
         }
         
-        if (customData != null) {
-            if(typeof customData === "function") {
-                data = this.mergeObject(data, customData(data));
+        if (config.customData != null) {
+            if(typeof config.customData === "function") {
+                data = this.mergeObject(data, config.customData(data));
             } else {
-                data = this.mergeObject(data, customData);
+                data = this.mergeObject(data, config.customData);
             }
         }
 
-        if (!!ajaxOptions) {
+        if (!!config.ajaxOptions) {
             data.serverSide = true;
             data.processing = true;
             //data.searching = true;
             data.ajax = this.mergeObject({
-                url: tableURL,
+                url: config.ajaxUrl,
                 type: "POST",
                 data: {
                     "csrf_token": (csrfToken) ? csrfToken : "",
                 }
-            }, ajaxOptions);
+            }, config.ajaxOptions);
         }
 
         $(document).ready(() => {
@@ -310,6 +322,13 @@ class KKsonCRUD {
 
             // Column Filter
             this.columnFilter();
+
+            // Refresh Button
+            $(".btnRefreshDatatable").click(function() {
+                self.table.ajax.reload(() => {
+                    ToastUtils.showSuccess("重新整理成功");
+                });
+            });
         });
     }
 
@@ -453,6 +472,65 @@ class KKsonCRUD {
     public resetColOrder() {
         this.table.colReorder.reset();
         ToastUtils.showSuccess("重設欄位順序成功");
+    }
+
+    public colSearchInit(api) {
+        api.columns().every(function () {
+            let column = this;
+            let title = column.header(0).textContent;
+
+            let searchable = $(column.header(0)).data("searchable");
+            if(searchable === false) {
+                return;
+            }
+
+            // Create input element
+            let input = $('<input>').addClass('form-control form-control-sm').attr('placeholder', title).css('width', '100%');
+            column.header(1).replaceChildren(input[0]);
+
+            // Event listener for user input
+            let searchTimeout;
+            input.on('keyup', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    let fixed = column.search.fixed("kkson-crud-col-search");
+                    let oldTerm = fixed?.term ? JSON.parse(fixed?.term).term : undefined;
+                    column.search.fixed("kkson-crud-col-search", JSON.stringify({
+                        term: input.val(),
+                        logic: "contains"
+                    }));
+                    if (oldTerm !== input.val()) {
+                        // Update the page URL hash to save the current column search parameter.
+                        // We'll use the column index and value as a key-value in the hash.
+                        try {
+                            // Collect all current col search values
+                            let colSearches = {};
+                            api.columns().every(function(i) {
+                                let _input = $(this.header(1)).find("input");
+                                if(_input.length > 0) {
+                                    let searchValue = _input.val();
+                                    if (searchValue) {
+                                        colSearches[i] = searchValue;
+                                    }
+                                }
+                            });
+                            
+                            let newHashParts = [];
+                            for(let key in colSearches) {
+                                newHashParts.push(key + "=" + encodeURIComponent(colSearches[key]).replace(/%20/g, "+"));
+                            }
+                            window.location.hash = newHashParts.join("&");
+                        } catch(e) { /* ignore */ }
+                    }
+                }, 250);
+            });
+        });
+
+        window.dispatchEvent(new PopStateEvent("popstate"));
+        // if(window.location.hash.replace(/^#/, "") != "") {
+        //     api.ajax.reload(() => {
+        //     }, true);
+        // }
     }
 }
 

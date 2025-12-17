@@ -408,7 +408,7 @@ var KKsonCRUD = /** @class */ (function () {
                 if ($headerActionContainer.find('.kkson-crud-col-clearall').length === 0) {
                     var $clearBtn = $('<button type="button">')
                         .addClass('btn btn-sm btn-outline-danger kkson-crud-col-clearall')
-                        .text('清除搜尋')
+                        .html('<i class="fa fa-times"></i> 清除')
                         .on('click', function (e) {
                         e.preventDefault();
                         // For each column, clear the input and clear fixed search

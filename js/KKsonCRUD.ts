@@ -475,9 +475,33 @@ class KKsonCRUD {
     }
 
     public colSearchInit(api) {
-        api.columns().every(function () {
+        api.columns().every(function (index) {
             let column = this;
             let title = column.header(0).textContent;
+
+            if(index === 0) {
+                //add action button
+                // Only insert for the first column header row
+                let $headerActionContainer = $(column.header(1));
+                if ($headerActionContainer.find('.kkson-crud-col-clearall').length === 0) {
+                    let $clearBtn = $('<button type="button">')
+                        .addClass('btn btn-sm btn-outline-danger kkson-crud-col-clearall')
+                        .text('清除搜尋')
+                        .on('click', function (e) {
+                            e.preventDefault();
+                            // For each column, clear the input and clear fixed search
+                            api.columns().every(function() {
+                                let c = this;
+                                let input = $(c.header(1)).find("input");
+                                input.val("");
+                                c.search.fixed("kkson-crud-col-search", null);
+                            });
+                            // Clear hash from url
+                            window.location.hash = "";
+                        });
+                    $headerActionContainer.append($clearBtn);
+                }
+            }
 
             let searchable = $(column.header(0)).data("searchable");
             if(searchable === false) {

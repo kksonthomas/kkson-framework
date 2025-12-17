@@ -167,8 +167,12 @@ abstract class BaseCRUDController
             $keyword = $param[2] instanceof \stdClass ? $param[2]->id : $param[2]; // {id, text} object for select2 ajax
 
             $searchField = $getSearchableFieldCallback($fieldName);
-            if(!$searchField && $allowNotDefinedSearchableField) {
-                $searchField = new TextSearchField($fieldName);
+            if(!$searchField) {
+                if($allowNotDefinedSearchableField) {
+                    $searchField = new TextSearchField($fieldName);
+                } else {
+                    throw new \Exception("Searchable field not found: $fieldName");
+                }
             }
 
             $callback = $searchField->getProcessSearchToSqlCallback();

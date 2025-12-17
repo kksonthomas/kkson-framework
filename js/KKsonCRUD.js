@@ -398,9 +398,32 @@ var KKsonCRUD = /** @class */ (function () {
         ToastUtils.showSuccess("重設欄位順序成功");
     };
     KKsonCRUD.prototype.colSearchInit = function (api) {
-        api.columns().every(function () {
+        api.columns().every(function (index) {
             var column = this;
             var title = column.header(0).textContent;
+            if (index === 0) {
+                //add action button
+                // Only insert for the first column header row
+                var $headerActionContainer = $(column.header(1));
+                if ($headerActionContainer.find('.kkson-crud-col-clearall').length === 0) {
+                    var $clearBtn = $('<button type="button">')
+                        .addClass('btn btn-sm btn-outline-danger kkson-crud-col-clearall')
+                        .text('清除搜尋')
+                        .on('click', function (e) {
+                        e.preventDefault();
+                        // For each column, clear the input and clear fixed search
+                        api.columns().every(function () {
+                            var c = this;
+                            var input = $(c.header(1)).find("input");
+                            input.val("");
+                            c.search.fixed("kkson-crud-col-search", null);
+                        });
+                        // Clear hash from url
+                        window.location.hash = "";
+                    });
+                    $headerActionContainer.append($clearBtn);
+                }
+            }
             var searchable = $(column.header(0)).data("searchable");
             if (searchable === false) {
                 return;

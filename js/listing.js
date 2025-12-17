@@ -306,7 +306,7 @@ function KKsonCRUDSearchingPane(formElem, config) {
         var result = null,
             tmp = [];
         location.search
-            .substr(1)
+            .replace(/^\?/, "")
             .split("&")
             .forEach(function(item) {
                 tmp = item.split("=");

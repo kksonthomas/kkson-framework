@@ -33,6 +33,18 @@ $crud->addJavaScriptCode(<<<JS
             maxIndent: 3
         };
         window.searchingPane = new KKsonCRUDSearchingPane($("#formSearchCriteria"), config);
+        
+        // Toggle chevron icon on collapse/expand
+        $('#searchPanelCollapse').on('show.bs.collapse', function () {
+            $(this).closest('.card').find('.card-tools .fa-chevron-down').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        }).on('hide.bs.collapse', function () {
+            $(this).closest('.card').find('.card-tools .fa-chevron-up').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        });
+
+        // Show panel if there's existing search data
+        if(searchingPane.toDataObject() != null) {
+            $('#searchPanelCollapse').collapse('show');
+        }
     });
 JS
 );
@@ -40,9 +52,14 @@ JS
 if (!empty($crud->getData("searchableFieldMap"))) : ?>
     <div class="row">
         <div class="col-12">
-            <div class="card card-outline card-default ">
-                <div class="card-header with-border">
-                    <h3 class="card-title"><i class="fa fa-search"></i> 搜尋</h3>
+            <div class="card card-outline card-info ">
+                <div class="card-header with-border" data-toggle="collapse" data-target="#searchPanelCollapse" aria-expanded="false" aria-controls="searchPanelCollapse" style="cursor: pointer;">
+                    <h3 class="card-title"><i class="fa fa-search"></i> 進階搜尋</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-toggle="collapse" data-target="#searchPanelCollapse" aria-expanded="false" aria-controls="searchPanelCollapse" onclick="event.stopPropagation();">
+                            <i class="fa fa-chevron-down"></i>
+                        </button>
+                    </div>
                 </div>
                 <!-- template of search form -->
                 <div class="searchCriteria tmpl mb-1 row">
@@ -94,18 +111,20 @@ if (!empty($crud->getData("searchableFieldMap"))) : ?>
                     </div>
                 </div>
                 <!-- form start -->
-                <form class="form-horizontal" action="" method="get" id="formSearchCriteria">
-                    <div class="card-body row">
-                        <div class="formScBody col-12">
+                <div id="searchPanelCollapse" class="collapse">
+                    <form class="form-horizontal" action="" method="get" id="formSearchCriteria">
+                        <div class="card-body row">
+                            <div class="formScBody col-12">
+                            </div>
                         </div>
-                    </div>
-                    <!-- /.card-body -->
-                    <div class="card-footer">
-                        <button type="submit" class="btn btn-info">搜尋</button>
-                        <button type="button" class="btn btn-default btnResetSearch">重設</button>
-                    </div>
-                    <!-- /.card-footer -->
-                </form>
+                        <!-- /.card-body -->
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-info">搜尋</button>
+                            <button type="button" class="btn btn-default btnResetSearch">重設</button>
+                        </div>
+                        <!-- /.card-footer -->
+                    </form>
+                </div>
             </div>
         </div>
     </div>

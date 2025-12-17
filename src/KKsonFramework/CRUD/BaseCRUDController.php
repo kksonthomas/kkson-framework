@@ -405,7 +405,7 @@ abstract class BaseCRUDController
 
     private function getSqlBody($withGroupBy = true) {
 
-        $groupBySql = $withGroupBy ? $this->getGroupBySql() : "";
+        $groupBySql = $withGroupBy ? $this->getGroupBySql() . " ". $this->getHavingClauseSql() : "";
         $sql = "
             FROM {$this->getBaseTableName()} $this->baseTableAlias
             {$this->getJoinClausesSql()}

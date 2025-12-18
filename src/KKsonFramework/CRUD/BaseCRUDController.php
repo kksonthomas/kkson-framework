@@ -63,6 +63,11 @@ abstract class BaseCRUDController
     public abstract function edit($crud);
 
     /**
+     * @param SlimKKsonCRUD $crud
+     */
+    public function export($crud) {}
+
+    /**
      * @return SlimKKsonCRUD
      */
     public function getCRUD()
@@ -122,6 +127,8 @@ abstract class BaseCRUDController
     public function getSearchableColField($name) {
         if(isset($this->searchableColFieldMap[$name])) {
             return $this->searchableColFieldMap[$name];
+        } else if(isset($this->searchableFieldMap[$name])) {
+            return $this->searchableFieldMap[$name];
         } else {
             return null;
         }
@@ -264,7 +271,7 @@ abstract class BaseCRUDController
 
         $columns = $this->crud->getSlim()->request->params("columns", []);
         $colSearchParams = [];
-        $fields = [null, ...$this->crud->getShowFields()];
+        $fields = [null, ...array_filter($this->crud->getShowFields())];
         if(count($columns)) {
             //decode from columns parameter
             foreach($columns as $column) {
@@ -420,8 +427,8 @@ abstract class BaseCRUDController
         return empty($this->havingClauses) ? "" : ("HAVING ".implode(" AND ", $this->havingClauses)) ;
     }
 
-    public function setupListViewDataClosures() {
-        $this->crud->setListViewDataClosure(function($start, $rowPerPage, $keyword, $sortField, $sortOrder) {
+    public function setupListViewDataClosures($debugSql = false) {
+        $this->crud->setListViewDataClosure(function($start, $rowPerPage, $keyword, $sortField, $sortOrder) use ($debugSql) {
             //the keyword is not used as it is fuzzy search function, which may have performance issues
             $sortFieldObj = $this->crud->getField($sortField);
             if($sortFieldObj && $sortFieldObj->isSortable()) {
@@ -439,8 +446,13 @@ abstract class BaseCRUDController
             $pageLimit = $start !== null && $rowPerPage !== null ? "LIMIT $start, $rowPerPage" : "" ;
 
             $sql = "SELECT {$this->getSelectFieldsSql()} {$this->getSqlBody()} ORDER BY $sortField $sortOrder $pageLimit";
-            // R::fancyDebug(1);
+            if($debugSql) {
+                R::fancyDebug(1);
+            }
             $data = R::getAll($sql, $this->sqlData);
+            if($debugSql) {
+                die();
+            }
             return R::convertToBeans($this->baseTableName, $data);
         });
         $this->crud->setCountListViewDataClosure(function($keyword) {

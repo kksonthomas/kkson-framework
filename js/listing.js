@@ -426,17 +426,23 @@ function KKsonCRUDSearchingPane(formElem, config) {
         //load col search from hash
         for(let i = 0; i < hashParts.length; i++) {
             let part = hashParts[i];
-            let key = part.split("=")[0];
-            let value = part.split("=")[1];
-
-            if(key && value) {
-                let column = crud.getDataTable().column(key);
-                let input = $(column.header(1)).find("input");
-                input.val(value);
-                column.search.fixed("kkson-crud-col-search", JSON.stringify({
-                    term: value,
-                    logic: "contains"
-                }));
+            if(typeof part === "string") {
+                let partKV = part.split("=");
+                if(partKV.length === 2) {
+                    let key = partKV[0];
+                    let value = decodeURIComponent(partKV[1].replace(/\+/g, " "));
+    
+                    if(key && value) {
+                        let column = crud.getDataTable().column(key);
+                        let input = $(column.header(1)).find("input");
+                        input.val(value);
+                        column.search.fixed("kkson-crud-col-search", JSON.stringify({
+                            term: value,
+                            logic: "contains"
+                        }));
+                    }
+                }
+                    
             }
         }
         self.updateExportBtnUrl();

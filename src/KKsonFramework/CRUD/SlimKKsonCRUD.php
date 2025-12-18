@@ -350,6 +350,34 @@ HTML;
         return $result;
     }
 
+    
+    /**
+     * @param BaseCRUDController $controller
+     * @param mixed $p1
+     * @param mixed $p2
+     * @param mixed $p3
+     * @param mixed $p4
+     * @param mixed $p5
+     * @return bool
+     */
+    private function loadExportClosure($controller, $p1 = null, $p2 = null, $p3 = null, $p4 = null, $p5 = null) {
+        $result = true;
+
+        if ($this->exportFunction != null) {
+            $exportFunction = $this->exportFunction;
+            $result = $exportFunction($p1, $p2, $p3, $p4, $p5);
+        } else if ($controller != null) {
+            $controller->setParam(0, $p1);
+            $controller->setParam(1, $p2);
+            $controller->setParam(2, $p3);
+            $controller->setParam(3, $p4);
+            $controller->setParam(4, $p5);
+            $result = $controller->export($this);
+        }
+
+        return $result;
+    }
+
     /**
      * @param BaseCRUDController $controller
      * @param mixed $p1
@@ -650,18 +678,13 @@ HTML;
                     return;
                 }
 
-                if ($this->exportFunction != null) {
-                    $exportFunction = $this->exportFunction;
-                    $result = $exportFunction($p1, $p2, $p3, $p4, $p5);
+                $result = $this->loadExportClosure($controller, $p1, $p2, $p3, $p4, $p5);
 
-                    if ($result === false) {
-                        return;
-                    }
+                if ($result === false) {
+                    return;
                 }
 
-                // TODO: isEnabledExport();
                 $this->renderExcel();
-
             })->via('GET', 'POST');
 
         });

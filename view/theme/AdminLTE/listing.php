@@ -10,8 +10,8 @@ use KKsonFramework\CRUD\Middleware\CSRFGuard;
 /** @var KKsonCRUD $crud */
 /** @var string $layoutName*/
 
-$crud->addHeadExternalCss("/vendor/kksonthomas/kkson-framework/css/listing.css?v=2");
-$crud->addBodyEndExternalJs("/vendor/kksonthomas/kkson-framework/js/listing.js?v=2");
+$crud->addHeadExternalCss("/vendor/kksonthomas/kkson-framework/css/listing.css?v=3");
+$crud->addBodyEndExternalJs("/vendor/kksonthomas/kkson-framework/js/listing.js?v=3");
 
 $this->layout($layoutName, ["disableLayoutFooterFixed" => true]);
 

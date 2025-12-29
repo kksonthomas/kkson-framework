@@ -21,6 +21,7 @@ use Stringy\Stringy;
 use KKsonFramework\CRUD\Exception\EditReadOnlyRecordException;  
 use KKsonFramework\CRUD\Exception\DuplicateEntryException;
 use KKsonFramework\Utils\FileUtils;
+use RedBeanPHP\BeanCollection;
 class KKsonCRUD
 {
     const NULL = "--kkson-crud-null";
@@ -802,7 +803,7 @@ HTML;
      * @param string $keyword
      * @param string $sortField
      * @param string $sortOrder ASC/DESC
-     * @return array List of beans
+     * @return array|BeanCollection List of beans
      * @throws SQL
      */
     protected function getListViewData($start = null, $rowPerPage = null, $keyword = null, $sortField = null, $sortOrder = null) {

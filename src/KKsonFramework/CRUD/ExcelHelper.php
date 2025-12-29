@@ -9,6 +9,8 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Stringy\Stringy;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use RedBeanPHP\BeanCollection;
+use RedBeanPHP\R;
 
 class ExcelHelper
 {
@@ -20,8 +22,12 @@ class ExcelHelper
             header("$key: $value");
         };
     }
-
-    public function genExcel(KKsonCRUD $crud, array $list, $filename = null) {
+    /**
+     * @param KKsonCRUD $crud
+     * @param array|BeanCollection $list
+     * @param string|null $filename
+     */
+    public function genExcel(KKsonCRUD $crud, $list, $filename = null) {
         Font::setAutoSizeMethod(Font::AUTOSIZE_METHOD_EXACT);
         $excel = new Spreadsheet();
 
@@ -41,7 +47,8 @@ class ExcelHelper
 
         // Data
         $rowIndex = 2;
-        foreach ($list as $bean) {
+
+        $rowHandler = function ($bean, $rowIndex) use ($sheet, $fields) {
             $colIndex = 1;
             foreach($fields as $field) {
                 $coord = Coordinate::stringFromColumnIndex($colIndex) . $rowIndex;
@@ -58,9 +65,20 @@ class ExcelHelper
                 }
                 $colIndex++;
             }
-            $rowIndex++;
-        }
+        };
 
+        if($list instanceof BeanCollection) {
+            $bean = $list->next();
+            while($bean !== null) {
+                $rowHandler($bean, $rowIndex++);
+                $bean = $list->next();
+            }
+            $list->close();
+        } else {
+            foreach ($list as $bean) {
+                $rowHandler($bean, $rowIndex++);
+            }
+        }
 
         // Save
         $objWriter = new Xlsx($excel);

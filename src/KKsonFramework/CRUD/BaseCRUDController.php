@@ -8,6 +8,7 @@ use KKsonFramework\CRUD\SearchFieldType\SearchCriteriaClasses\SearchCriteria;
 use KKsonFramework\CRUD\SearchFieldType\SearchFieldBase;
 use KKsonFramework\CRUD\SearchFieldType\TextSearchField;
 use RedBeanPHP\R;
+use RedBeanPHP\BeanCollection;
 
 abstract class BaseCRUDController
 {
@@ -449,11 +450,20 @@ abstract class BaseCRUDController
             if($debugSql) {
                 R::fancyDebug(1);
             }
-            $data = R::getAll($sql, $this->sqlData);
-            if($debugSql) {
-                die();
+            if(!empty($pageLimit)) {
+                $data = R::getAll($sql, $this->sqlData);
+                if($debugSql) {
+                    die();
+                }
+                return R::convertToBeans($this->baseTableName, $data);
+            } else {
+                $cursor = R::getCursor($sql, $this->sqlData);
+                if($debugSql) {
+                    die();
+                }
+                return new BeanCollection($this->baseTableName, R::getRedBean()->getCurrentRepository(), $cursor);
             }
-            return R::convertToBeans($this->baseTableName, $data);
+            
         });
         $this->crud->setCountListViewDataClosure(function($keyword) {
             $sql = "SELECT 

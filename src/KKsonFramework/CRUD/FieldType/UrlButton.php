@@ -15,4 +15,9 @@ class UrlButton extends TextField
         }
         return "";
     }
+
+    public function renderExportCell($url, $bean)
+    {
+        return htmlspecialchars($url);
+    }
 }

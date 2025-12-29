@@ -330,33 +330,31 @@ class Field
      * @param $bean
      * @return string
      */
-    public function cellValue($bean)
+    public function cellValue($bean, $forExcel = false)
     {
-
         try {
-
             if ($this->fieldType->getFieldRelation() == Field::NORMAL) {
-
                 if (isset($bean->{$this->getName()})) {
-                    $value = $this->fieldType->renderCell($bean->{$this->getName()}, $bean);
+                    if ($forExcel) {
+                        $value = $this->fieldType->renderExportCell($bean->{$this->getName()}, $bean);
+                    } else {
+                        $value = $this->fieldType->renderCell($bean->{$this->getName()}, $bean);
+                    }
                 } else {
                     $value = "";
                 }
-
-
             } else {
-
                 //TODO: Show a few items
                 $value = "Click 'Edit' to view select item(s).";
             }
-
+            
         } catch (\Exception $ex) {
             $value = "N/A";
         }
-
+        
         if ($this->cellClosure != null) {
             $c = $this->cellClosure;
-            return $c($value, $bean);
+            return $c($value, $bean, $forExcel);
         } else {
             return $value;
         }

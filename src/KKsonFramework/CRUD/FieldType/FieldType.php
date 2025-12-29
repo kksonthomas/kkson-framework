@@ -44,6 +44,15 @@ abstract class FieldType
     }
 
     /**
+     * @param mixed $value
+     * @param OODBBean $bean
+     * @return string
+     */
+    public function renderExportCell($value, $bean) {
+        return $this->renderCell($value, $bean);
+    }
+
+    /**
      * @return callable
      */
     public function getAfterSaveBeanClosure()

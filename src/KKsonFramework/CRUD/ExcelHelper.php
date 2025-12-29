@@ -8,6 +8,7 @@ use PhpOffice\PhpSpreadsheet\Shared\Font;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Stringy\Stringy;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class ExcelHelper
 {
@@ -29,29 +30,35 @@ class ExcelHelper
         $fields = $crud->getShowFields();
 
         // Header
-        $i = 0;
+        $colIndex = 1;
         foreach($fields as $field) {
-            $sheet->setCellValueByColumnAndRow($i, 1, $field->getDisplayName());
-            $sheet->getColumnDimensionByColumn($i)->setAutoSize(true);
+            $coord = Coordinate::stringFromColumnIndex($colIndex) . "1";
+            $sheet->getCell($coord)->setValue($field->getDisplayName());
+            $sheet->getColumnDimensionByColumn($colIndex)->setAutoSize(true);
 
-            $i++;
+            $colIndex++;
         }
 
         // Data
-        $j = 2;
+        $rowIndex = 2;
         foreach ($list as $bean) {
-            $i = 0;
+            $colIndex = 1;
             foreach($fields as $field) {
-                $value = strip_tags($field->cellValue($bean));
+                $coord = Coordinate::stringFromColumnIndex($colIndex) . $rowIndex;
+                $value = strip_tags($field->cellValue($bean, true));
                 
                 if (Stringy::create($value)->startsWith("=")) {
                     $value = " $value";
                 }
                 
-                $sheet->getCellByColumnAndRow($i, $j)->setValueExplicit($value, DataType::TYPE_STRING2);
-                $i++;
+                $cell = $sheet->getCell($coord);
+                $cell->setValueExplicit($value, DataType::TYPE_STRING);
+                if(preg_match('/\n/', $value)) {
+                    $cell->getStyle()->getAlignment()->setWrapText(true);
+                }
+                $colIndex++;
             }
-            $j++;
+            $rowIndex++;
         }
 
 

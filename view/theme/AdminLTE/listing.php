@@ -3,7 +3,6 @@
 use KKsonFramework\CRUD\SearchFieldType\SearchFieldBase;
 use KKsonFramework\CRUD\KKsonCRUD;
 use KKsonFramework\CRUD\Field;
-use KKsonFramework\CRUD\Middleware\CSRFGuard;
 
 /** @var Field[] $fields */
 /** @var array $list */
@@ -14,6 +13,30 @@ $crud->addHeadExternalCss("/vendor/kksonthomas/kkson-framework/css/listing.css?v
 $crud->addBodyEndExternalJs("/vendor/kksonthomas/kkson-framework/js/listing.js?v=3");
 
 $this->layout($layoutName, ["disableLayoutFooterFixed" => true]);
+
+$searchableColFieldMap = $crud->getData("searchableColFieldMap");
+if (!$searchableColFieldMap) {
+    $searchableColFieldMap = [];
+}
+$searchableColFieldJsObj = [];
+$showFields = $crud->getShowFields();
+foreach ($showFields as $i => $field) {
+    $fieldName = $field->getName();
+    if(!isset($searchableColFieldMap[$fieldName])) {
+        continue;
+    }
+    /** @var SearchFieldBase $searchableColField */
+    $searchableColField = $searchableColFieldMap[$fieldName];
+    $logic = $searchableColField->getConditionList()[0];
+    /** @var SearchFieldBase $searchableColField */
+    $searchableColFieldJsObj[$i+1] = [
+        "name" => $fieldName,
+        "render" => $searchableColField->render(),
+        "condition" => $logic,
+        "displayName" => $searchableColField->getDisplayName()
+    ];
+}
+$searchableColFieldJson = json_encode($searchableColFieldJsObj);
 
 $isAjax = ($crud->isAjaxListView()) ? "true" : "false";
 $jsonLink = $crud->getListViewJSONLink();
@@ -32,6 +55,7 @@ $crud->addJavaScriptCode(
     let ajaxUrl = "$jsonLink";
     let enableSearch = $enableSearch;
     let enableColSearch = $enableColSearch;
+    let searchableColFieldMap = $searchableColFieldJson;
     let enableSorting = $enableSorting;
 
     crud.initListView({
@@ -40,6 +64,7 @@ $crud->addJavaScriptCode(
         enableSearch:enableSearch,
         enableSorting:enableSorting,
         enableColSearch:enableColSearch,
+        searchableColFieldMap:searchableColFieldMap,
         customData:function(_originalData) {
             return {
                 initComplete: function(settings) {

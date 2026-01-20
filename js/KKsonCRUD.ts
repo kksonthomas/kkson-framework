@@ -7,7 +7,15 @@
 /// <reference path="../../../vendor/almasaeed2010/adminlte/plugins/sweetalert2/sweetalert2.all.min.js" />
 
 class KKsonCRUD {
-
+    private config: {
+        ajaxOptions?: {},
+        ajaxUrl: string,
+        enableSearch: boolean = true,
+        enableSorting: boolean = true,
+        enableColSearch: boolean = false,
+        searchableColFieldMap: {},
+        customData?: {}
+    } = {};
     private table;
 
     private ajaxFormCallback;
@@ -214,9 +222,12 @@ class KKsonCRUD {
         enableSearch: boolean = true,
         enableSorting: boolean = true,
         enableColSearch: boolean = false,
+        searchableColFieldMap: {},
         customData?: {}
     }) {
         let self = this;
+
+        this.config = config;
 
         let data: {} = {
             "pageLength": 25,
@@ -475,6 +486,13 @@ class KKsonCRUD {
     }
 
     public colSearchInit(api) {
+        let config = this.initListViewCustomData;
+
+        let colSearchClearBtnClass = config?.crudCustomClasses?.colSeachClearButton ?? "";
+        let colSearchInputClass = config?.crudCustomClasses?.colSearchInput ?? "";
+
+        let self = this;
+
         api.columns().every(function (index) {
             let column = this;
             let title = column.header(0).textContent;
@@ -485,15 +503,15 @@ class KKsonCRUD {
                 let $headerActionContainer = $(column.header(1));
                 if ($headerActionContainer.find('.kkson-crud-col-clearall').length === 0) {
                     let $clearBtn = $('<button type="button">')
-                        .addClass('btn btn-sm btn-outline-danger kkson-crud-col-clearall')
+                        .addClass(`btn btn-outline-danger kkson-crud-col-clearall ${colSearchClearBtnClass}`)
                         .html('<i class="fa fa-times"></i> 清除')
                         .on('click', function (e) {
                             e.preventDefault();
                             // For each column, clear the input and clear fixed search
                             api.columns().every(function() {
                                 let c = this;
-                                let input = $(c.header(1)).find("input");
-                                input.val("");
+                                let searchElem = $(c.header(1)).find(".col-search-input");
+                                searchElem.val("").trigger("change");
                                 c.search.fixed("kkson-crud-col-search", null);
                             });
                             // Clear hash from url
@@ -508,46 +526,81 @@ class KKsonCRUD {
                 return;
             }
 
-            // Create input element
-            let input = $('<input>').addClass('form-control form-control-sm').attr('placeholder', title).css('width', '100%');
-            column.header(1).replaceChildren(input[0]);
+            let colSearchConfig = self.config.searchableColFieldMap[index];
+            if(colSearchConfig) {
+                let condition = colSearchConfig.condition;
+                let displayName = colSearchConfig.displayName;
+                let render = colSearchConfig.render;
 
-            // Event listener for user input
-            let searchTimeout;
-            input.on('keyup', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    let fixed = column.search.fixed("kkson-crud-col-search");
-                    let oldTerm = fixed?.term ? JSON.parse(fixed?.term).term : undefined;
-                    column.search.fixed("kkson-crud-col-search", JSON.stringify({
-                        term: input.val(),
-                        logic: "contains"
-                    }));
-                    if (oldTerm !== input.val()) {
-                        // Update the page URL hash to save the current column search parameter.
-                        // We'll use the column index and value as a key-value in the hash.
-                        try {
-                            // Collect all current col search values
-                            let colSearches = {};
-                            api.columns().every(function(i) {
-                                let _input = $(this.header(1)).find("input");
-                                if(_input.length > 0) {
-                                    let searchValue = _input.val();
-                                    if (searchValue) {
-                                        colSearches[i] = searchValue;
-                                    }
-                                }
-                            });
-                            
-                            let newHashParts = [];
-                            for(let key in colSearches) {
-                                newHashParts.push(key + "=" + encodeURIComponent(colSearches[key]).replace(/%20/g, "+"));
+                // Create input element
+                let searchElem = null;
+                if (typeof render === 'string') {
+                    searchElem = $(render);
+                } else if (typeof render === 'object') {
+                    let elem = $(`<${render['tag']??'input'}>`).addClass(`form-control inputKeyword ${colSearchInputClass}`).attr('placeholder', title).css('width', '100%');
+                    if (render["attr"]) {
+                        for (const [k, v] of Object.entries(render["attr"])) {
+                            if (k === "class") {
+                                elem.addClass(v);
+                            } else {
+                                elem.attr(k, v);
                             }
-                            window.location.hash = newHashParts.join("&");
-                        } catch(e) { /* ignore */ }
+                        }
                     }
-                }, 250);
-            });
+                    if (render['tag'] === 'select' && render["options"]) {
+                        elem.append($("<option>").text(render["placeholder"] ?? "").prop("selected", true).addClass("placeholder"));
+                        for (const [k, v] of Object.entries(render["options"])) {
+                            elem.append($("<option>").val(k).text(v));
+                        }
+                    }
+                    searchElem = elem;
+    
+                    if (!render["manualInitValue"] && typeof keyword !== "undefined" && keyword !== "") {
+                        searchElem.val(keyword).trigger("change");
+                    }
+                }
+                searchElem.addClass("col-search-input");
+
+
+                column.header(1).replaceChildren(searchElem[0]);
+    
+                // Event listener for user input
+                let searchTimeout;
+                searchElem.on('keyup change', () => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        let fixed = column.search.fixed("kkson-crud-col-search");
+                        let oldTerm = fixed?.term ? JSON.parse(fixed?.term).term : undefined;
+                        column.search.fixed("kkson-crud-col-search", JSON.stringify({
+                            term: searchElem.val(),
+                            logic: condition
+                        }));
+                        if (oldTerm !== searchElem.val()) {
+                            // Update the page URL hash to save the current column search parameter.
+                            // We'll use the column index and value as a key-value in the hash.
+                            try {
+                                // Collect all current col search values
+                                let colSearches = {};
+                                api.columns().every(function(i) {
+                                    let _input = $(this.header(1)).find(".col-search-input");
+                                    if(_input.length > 0) {
+                                        let searchValue = _input.val();
+                                        if (searchValue) {
+                                            colSearches[i] = searchValue;
+                                        }
+                                    }
+                                });
+                                
+                                let newHashParts = [];
+                                for(let key in colSearches) {
+                                    newHashParts.push(key + "=" + encodeURIComponent(colSearches[key]).replace(/%20/g, "+"));
+                                }
+                                window.location.hash = newHashParts.join("&");
+                            } catch(e) { /* ignore */ }
+                        }
+                    }, 250);
+                });
+            }
         });
 
         window.dispatchEvent(new PopStateEvent("popstate"));

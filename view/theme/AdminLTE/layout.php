@@ -168,7 +168,7 @@ $title = !empty($crud->getData("title")) ? $crud->getData("title") : ($header ? 
 <script src="/vendor/almasaeed2010/adminlte/plugins/bootstrap-switch/js/bootstrap-switch.min.js"></script>
 
 <script src="/vendor/almasaeed2010/adminlte/dist/js/adminlte.min.js?v=3.2.0"></script>
-<script src="/vendor/kksonthomas/kkson-framework/js/KKsonCRUD.js?v=6"></script>
+<script src="/vendor/kksonthomas/kkson-framework/js/KKsonCRUD.js?v=7"></script>
 <script src="/vendor/kksonthomas/kkson-framework/js/backend.js"></script>
 
 <script>

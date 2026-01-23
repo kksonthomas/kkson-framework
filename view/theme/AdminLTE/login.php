@@ -61,7 +61,7 @@ use KKsonFramework\Utils\UrlUtils;
 <!-- /.login-box -->
 
 <!-- jQuery 2.1.4 -->
-<script src="<?= UrlUtils::res("vendor/components/jquery/jquery.min.js") ?>" type="text/javascript"></script>
+<script src="<?= UrlUtils::res("vendor/almasaeed2010/adminlte/plugins/jquery/jquery.min.js") ?>" type="text/javascript"></script>
 <!-- Bootstrap 3.3.2 JS -->
 <script src="<?= UrlUtils::res("vendor/almasaeed2010/adminlte/bootstrap/js/bootstrap.min.js") ?>" type="text/javascript"></script>
 

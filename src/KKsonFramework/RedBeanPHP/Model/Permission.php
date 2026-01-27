@@ -3,7 +3,7 @@
 namespace KKsonFramework\RedBeanPHP\Model;
 
 
-use KKsonFramework\RedBeanPHP\ModelBase\BaseModelBase;
+use KKsonFramework\RedBeanPHP\ModelBase\BaseModel;
 use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
 
@@ -12,7 +12,7 @@ use RedBeanPHP\R;
  * @property mixed name
  * @property mixed group
  */
-class Permission extends BaseModelBase
+class Permission extends BaseModel
 {
     const PERMISSION_USER_ADMIN_VIEW = "USER_ADMIN_VIEW";
     const PERMISSION_USER_ADMIN_MODIFY = "USER_ADMIN_MODIFY";

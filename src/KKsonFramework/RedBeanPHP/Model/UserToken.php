@@ -2,10 +2,8 @@
 
 namespace KKsonFramework\RedBeanPHP\Model;
 
-
 use KKsonFramework\Auth\Auth;
-use KKsonFramework\RedBeanPHP\ModelBase\BaseModelBase;
-use RedBeanPHP\OODBBean;
+use KKsonFramework\RedBeanPHP\ModelBase\BaseModel;
 use RedBeanPHP\R;
 
 /**
@@ -17,7 +15,7 @@ use RedBeanPHP\R;
  * @property int is_used
  * @property int is_voided
  */
-class UserToken extends BaseModelBase
+class UserToken extends BaseModel
 {
     const TYPE_FRONTEND_LOGIN_AS = "frontend_login_as";
 

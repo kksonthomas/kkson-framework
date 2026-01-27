@@ -2,7 +2,7 @@
 
 namespace KKsonFramework\RedBeanPHP\Model;
 
-use KKsonFramework\RedBeanPHP\ModelBase\BaseModelBase;
+use KKsonFramework\RedBeanPHP\ModelBase\BaseModel;
 use RedBeanPHP\R;
 
 /**
@@ -10,7 +10,7 @@ use RedBeanPHP\R;
  * @property mixed new_data
  * @property mixed action
  */
-class RecordHistory extends BaseModelBase
+class RecordHistory extends BaseModel
 {
     public static function _getTableName()
     {

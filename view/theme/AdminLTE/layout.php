@@ -67,14 +67,19 @@ $title = !empty($crud->getData("title")) ? $crud->getData("title") : ($header ? 
 
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
 
-        <a href="#" class="brand-link">
-            <img src="/vendor/almasaeed2010/adminlte/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
-                 style="opacity: .8">
-            <span class="brand-text font-weight-light"><?= AppConfig::get()->appName()?></span>
-            <?php if(App::isUAT()) : ?>
-            <span class="right badge badge-danger">UAT</span>
-            <?php endif; ?>
-        </a>
+        <div class="brand-link-wrapper">
+            <a href="#" class="brand-link">
+                <img src="/vendor/almasaeed2010/adminlte/dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
+                     style="opacity: .8">
+                <span class="brand-text font-weight-light"><?= AppConfig::get()->appName()?></span>
+                <?php if(App::isUAT()) : ?>
+                <span class="right badge badge-danger">UAT</span>
+                <?php endif; ?>
+            </a>
+            <button type="button" class="sidebar-close-btn" data-widget="pushmenu" aria-label="Close Sidebar">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
 
         <div class="sidebar">
 

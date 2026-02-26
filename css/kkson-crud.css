@@ -58,3 +58,38 @@ div.tmpl {
 .dt-sticky-scrollbar div {
   height: 17px;
 }
+.brand-link-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  z-index: 10000;
+}
+.brand-link-wrapper .brand-link {
+  position: unset!important;
+  flex: 1;
+}
+.brand-link-wrapper .sidebar-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin-right: 0.4rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.25rem;
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+  right: 50px;
+  z-index: 100000;
+}
+.brand-link-wrapper .sidebar-close-btn:hover,
+.brand-link-wrapper .sidebar-close-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+}

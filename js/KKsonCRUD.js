@@ -357,7 +357,7 @@ var KKsonCRUD = /** @class */ (function () {
         // Delete Button
         $(".btn-delete:not(.ok)").click(function () {
             var _this = this;
-            AlertUtils.showWarning("刪除", "確定要刪除此記錄?").then(function (v) {
+            AlertUtils.showConfirm("刪除", "確定要刪除此記錄?", { "icon": "warning" }).then(function (v) {
                 if (v.isConfirmed) {
                     var btn = $(_this);
                     var deleteLink = $(_this).data("url");

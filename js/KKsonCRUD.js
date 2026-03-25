@@ -311,6 +311,7 @@ var KKsonCRUD = /** @class */ (function () {
             $(window).scroll(function (e) {
                 var targetElem = $(targetElemSelector);
                 if (window.innerHeight + window.pageYOffset < targetElem.offset().top + targetElem.height()) {
+                    dtStickyScrollbar.width(targetElem.width());
                     dtStickyScrollbar.addClass("sticky");
                     if (targetElem.scrollLeft() !== dtStickyScrollbar.scrollLeft()) {
                         dtStickyScrollbar.data("ignoreScroll", true).scrollLeft(targetElem.scrollLeft());
@@ -335,7 +336,7 @@ var KKsonCRUD = /** @class */ (function () {
         else {
             dtStickyScrollbarContent = dtStickyScrollbar.children();
         }
-        dtStickyScrollbarContent.css("width", targetElem.children().css("width"));
+        dtStickyScrollbarContent.css("width", targetElem[0].scrollWidth + "px");
     };
     ;
     KKsonCRUD.prototype.columnFilter = function () {

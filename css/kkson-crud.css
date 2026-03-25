@@ -47,6 +47,7 @@ div.tmpl {
   overflow-x: scroll;
   overflow-y: hidden;
   display: none;
+  scrollbar-width: auto;
 }
 .dt-sticky-scrollbar.sticky {
   position: fixed;

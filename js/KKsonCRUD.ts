@@ -382,6 +382,7 @@ class KKsonCRUD {
             $(window).scroll(function (e) {
                 let targetElem = $(targetElemSelector);
                 if (window.innerHeight + window.pageYOffset < targetElem.offset().top + targetElem.height()) {
+                    dtStickyScrollbar.width(targetElem.width());
                     dtStickyScrollbar.addClass("sticky");
                     if (targetElem.scrollLeft() !== dtStickyScrollbar.scrollLeft()) {
                         dtStickyScrollbar.data("ignoreScroll", true).scrollLeft(targetElem.scrollLeft());
@@ -408,7 +409,7 @@ class KKsonCRUD {
             dtStickyScrollbarContent = dtStickyScrollbar.children();
         }
 
-        dtStickyScrollbarContent.css("width", targetElem.children().css("width"));
+        dtStickyScrollbarContent.css("width", (targetElem[0] as HTMLElement).scrollWidth + "px");
     };
 
     public columnFilter() {

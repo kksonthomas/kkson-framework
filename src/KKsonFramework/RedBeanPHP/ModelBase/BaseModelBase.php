@@ -9,12 +9,12 @@ use RedBeanPHP\R;
 use RedBeanPHP\SimpleModel;
 
 /**
- * @property mixed modified_user_id
- * @property mixed modified_date
- * @property mixed creation_user_id
- * @property mixed creation_date
- * @property mixed id
- * @property int _deleted
+ * @property ?int $modified_user_id
+ * @property ?string $modified_date
+ * @property ?int $creation_user_id
+ * @property ?string $creation_date
+ * @property int $id
+ * @property int $_deleted
  */
 abstract class BaseModelBase extends SimpleModel
 {

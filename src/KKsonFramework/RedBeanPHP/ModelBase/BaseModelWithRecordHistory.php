@@ -6,7 +6,7 @@ use RedBeanPHP\R;
 
 abstract class BaseModelWithRecordHistory extends BaseModel
 {
-    private $record = null;
+    private ?\RedBeanPHP\OODBBean $record = null;
     public function update()
     {
         parent::update();

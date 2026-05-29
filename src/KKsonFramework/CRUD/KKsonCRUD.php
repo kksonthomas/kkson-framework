@@ -127,34 +127,34 @@ class KKsonCRUD
     protected $headHTML = "";
 
     /**
-     * @var callable
+     * @var callable[]
      */
-    protected $afterUpdateBean = null;
+    protected $afterUpdateCallbacks = [];
 
     /**
-     * @var callable
+     * @var callable[]
      */
-    protected $afterInsertBean = null;
+    protected $afterInsertCallbacks = [];
 
     /**
-     * @var callable
+     * @var callable[]
      */
-    protected $afterDeleteBean = null;
+    protected $afterDeleteCallbacks = [];
 
     /**
-     * @var callable
+     * @var callable[]
      */
-    protected $beforeUpdateBean = null;
+    protected $beforeUpdateCallbacks = [];
 
     /**
-     * @var callable
+     * @var callable[]
      */
-    protected $beforeInsertBean = null;
+    protected $beforeInsertCallbacks = [];
 
     /**
-     * @var callable
+     * @var callable[]
      */
-    protected $beforeDeleteBean = null;
+    protected $beforeDeleteCallbacks = [];
 
     /**
      * @var callable
@@ -1407,10 +1407,7 @@ HTML;
                 $result->class = "danger";
             }
     
-            if ($this->afterInsertBean != null) {
-                $callable = $this->afterInsertBean;
-                $callable($bean, $result);
-            }
+            $this->invokeCallbacks($this->afterInsertCallbacks, $bean, $result);
 
             if($this->isInsertUpdateUseTransaction) {
                 if($result->ok) {
@@ -1430,45 +1427,134 @@ HTML;
     }
 
     /**
-     * @param callable $afterUpdateBean
+     * @param callable $callable
+     * @return $this
      */
-    public function afterUpdate($afterUpdateBean)
+    public function afterUpdate($callable)
     {
-        $this->afterUpdateBean = $afterUpdateBean;
+        $this->afterUpdateCallbacks = [$callable];
+        return $this;
     }
 
     /**
-     * @param callable $afterInsertBean
+     * @param callable $callable
+     * @return $this
      */
-    public function afterInsert($afterInsertBean)
+    public function addAfterUpdate($callable)
     {
-        $this->afterInsertBean = $afterInsertBean;
-    }
-
-    public function afterDelete($afterDeleteBean)
-    {
-        $this->afterDeleteBean = $afterDeleteBean;
+        $this->afterUpdateCallbacks[] = $callable;
+        return $this;
     }
 
     /**
+     * @param callable $callable
+     * @return $this
      */
-    public function beforeUpdate($beforeUpdateBean)
+    public function afterInsert($callable)
     {
-        $this->beforeUpdateBean = $beforeUpdateBean;
+        $this->afterInsertCallbacks = [$callable];
+        return $this;
     }
-
 
     /**
-     * @param $beforeInsertBean
+     * @param callable $callable
+     * @return $this
      */
-    public function beforeInsert($beforeInsertBean)
+    public function addAfterInsert($callable)
     {
-        $this->beforeInsertBean = $beforeInsertBean;
+        $this->afterInsertCallbacks[] = $callable;
+        return $this;
     }
 
-    public function beforeDelete($beforeDeleteBean)
+    /**
+     * @param callable $callable
+     * @return $this
+     */
+    public function afterDelete($callable)
     {
-        $this->beforeDeleteBean = $beforeDeleteBean;
+        $this->afterDeleteCallbacks = [$callable];
+        return $this;
+    }
+
+    /**
+     * @param callable $callable
+     * @return $this
+     */
+    public function addAfterDelete($callable)
+    {
+        $this->afterDeleteCallbacks[] = $callable;
+        return $this;
+    }
+
+    /**
+     * @param callable $callable
+     * @return $this
+     */
+    public function beforeUpdate($callable)
+    {
+        $this->beforeUpdateCallbacks = [$callable];
+        return $this;
+    }
+
+    /**
+     * @param callable $callable
+     * @return $this
+     */
+    public function addBeforeUpdate($callable)
+    {
+        $this->beforeUpdateCallbacks[] = $callable;
+        return $this;
+    }
+
+    /**
+     * @param callable $callable
+     * @return $this
+     */
+    public function beforeInsert($callable)
+    {
+        $this->beforeInsertCallbacks = [$callable];
+        return $this;
+    }
+
+    /**
+     * @param callable $callable
+     * @return $this
+     */
+    public function addBeforeInsert($callable)
+    {
+        $this->beforeInsertCallbacks[] = $callable;
+        return $this;
+    }
+
+    /**
+     * @param callable $callable
+     * @return $this
+     */
+    public function beforeDelete($callable)
+    {
+        $this->beforeDeleteCallbacks = [$callable];
+        return $this;
+    }
+
+    /**
+     * @param callable $callable
+     * @return $this
+     */
+    public function addBeforeDelete($callable)
+    {
+        $this->beforeDeleteCallbacks[] = $callable;
+        return $this;
+    }
+
+    /**
+     * @param callable[] $callbacks
+     * @param mixed ...$args
+     */
+    protected function invokeCallbacks(array $callbacks, ...$args): void
+    {
+        foreach ($callbacks as $callback) {
+            $callback(...$args);
+        }
     }
 
     public function deleteBeanNameClause($deleteBeanNameClause)
@@ -1502,10 +1588,7 @@ HTML;
                 $result->class = "danger";
             }
     
-            if ($this->afterUpdateBean != null) {
-                $callable = $this->afterUpdateBean;
-                $callable($this->currentBean, $result);
-            }
+            $this->invokeCallbacks($this->afterUpdateCallbacks, $this->currentBean, $result);
 
             if($this->isInsertUpdateUseTransaction) {
                 if($result->ok) {
@@ -1667,17 +1750,11 @@ HTML;
 
             if ($bean->id > 0) {
 
-                if ($this->beforeUpdateBean != null) {
-                    $callable = $this->beforeUpdateBean;
-                    $callable($this->currentBean);
-                }
+                $this->invokeCallbacks($this->beforeUpdateCallbacks, $this->currentBean);
 
             } else {
 
-                if ($this->beforeInsertBean != null) {
-                    $callable = $this->beforeInsertBean;
-                    $callable($bean);
-                }
+                $this->invokeCallbacks($this->beforeInsertCallbacks, $bean);
 
             }
 
@@ -1725,10 +1802,7 @@ HTML;
 
             if ($this->currentBean) {
 
-                if($this->beforeDeleteBean != null) {
-                    $callable = $this->beforeDeleteBean;
-                    $callable($this->currentBean);
-                }
+                $this->invokeCallbacks($this->beforeDeleteCallbacks, $this->currentBean);
 
                 $model = $this->currentBean->box();
                 if($model && $model instanceof BaseModelBase) {
@@ -1736,10 +1810,7 @@ HTML;
                     $model->deleteSelf();
                 }
 
-                if($this->afterDeleteBean != null) {
-                    $callable = $this->afterDeleteBean;
-                    $callable($this->currentBean);
-                }
+                $this->invokeCallbacks($this->afterDeleteCallbacks, $this->currentBean);
 
             } else {
                 throw new NoBeanException();

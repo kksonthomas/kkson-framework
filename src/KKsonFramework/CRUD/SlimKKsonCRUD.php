@@ -216,7 +216,6 @@ HTML;
                 $ip = SystemLog::getClientIp();
                 $failCount = null;
                 if($ip) {
-                    App::updateIpLoginFailedBanStatus($ip);
                     $failCount = App::checkIpLoginFailedCount($ip);
                 }
 

@@ -3,6 +3,7 @@
 namespace KKsonFramework\Auth;
 
 
+use KKsonFramework\App\App;
 use KKsonFramework\RedBeanPHP\Model\SystemLog;
 use KKsonFramework\RedBeanPHP\Model\User;
 
@@ -38,6 +39,9 @@ class Auth
     public static function login($username, $password, &$error = null) {
         $result = self::getAuthLogic()->login($username, $password, $error);
         SystemLog::createLoginLog($username, $result);
+        if(!$result) {
+            App::updateIpLoginFailedBanStatus();
+        }
         return $result;
 
     }

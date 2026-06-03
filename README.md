@@ -13,36 +13,22 @@ Add configuration under your application `conf/` directory:
 - `app.config.ini` — environment and app settings (`env` selects the DB config file)
 - `db.config.{env}.ini` — database connection
 
-## IP ban database patch (v0.10.4.1+)
+## IP ban performance (v0.10.4.1+)
 
-From v0.10.4.1, IP ban checks are faster in code alone. An optional database patch adds `system_log.client_ip`, backfills existing rows, and creates indexes for large `system_log` tables.
+Updating the package improves IP ban behavior without any database change. Unauthenticated requests only check existing bans; failed-login counting runs after a failed login.
 
-The application runs correctly **without** the patch. Apply it when you want indexed IP lookups on login logs.
+For faster queries on large `system_log` tables, apply the optional SQL patch once:
 
-**Run** (in your app project, where `vendor/` and `conf/` live):
-
-```bash
-vendor/bin/patch-v0.10.4.1-ip-ban-db
+```text
+vendor/kksonthomas/kkson-framework/sql/patch-v0.10.4.1-ip-ban.sql
 ```
 
-**If you get Permission denied:**
+Example:
 
 ```bash
-php vendor/kksonthomas/kkson-framework/bin/patch-v0.10.4.1-ip-ban-db.php
+mysql -u USER -p DATABASE < vendor/kksonthomas/kkson-framework/sql/patch-v0.10.4.1-ip-ban.sql
 ```
 
-**Custom config path:**
+The script adds `system_log.client_ip`, backfills simple JSON array rows, and creates indexes. Skip it if you do not need indexed IP lookups; the app remains fully functional.
 
-```bash
-vendor/bin/patch-v0.10.4.1-ip-ban-db --conf-dir=conf
-```
-
-The script finds the project root via `vendor/autoload.php`, loads `conf/app.config.ini` and `conf/db.config.{env}.ini`, and is safe to run repeatedly.
-
-**Requires:** MySQL/MariaDB, `system_log` and `ban_ip_list` tables, `ext-mysqli`.
-
-**When hacking this repo directly:**
-
-```bash
-composer patch-ip-ban-db
-```
+On re-run, ignore duplicate column or duplicate index errors. Requires `system_log` and `ban_ip_list` tables.

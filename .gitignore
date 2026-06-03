@@ -4,3 +4,4 @@
 
 *.ini
 composer.lock
+.cursor/rules/codegraph.mdc

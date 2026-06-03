@@ -12,6 +12,8 @@ use Slim\Exception\Stop;
  */
 class SystemLog extends BaseModelBase
 {
+    private static $hasClientIpColumn = null;
+
     const TYPE_EXCEPTION = "EXCEPTION";
     const TYPE_INSUFFICIENT_PERMISSION = "INSUFFICIENT_PERMISSION";
     const TYPE_LOGIN = "LOGIN";
@@ -47,6 +49,40 @@ class SystemLog extends BaseModelBase
     }
 
     /**
+     * Client IP using the same header priority as getHeaderIpData(true).
+     *
+     * @return string|null
+     */
+    public static function getClientIp() {
+        $ipData = self::getHeaderIpData(true);
+        $ip = reset($ipData);
+        return $ip ? $ip : null;
+    }
+
+    /**
+     * Whether system_log.client_ip exists (cached per request).
+     */
+    public static function hasClientIpColumn() {
+        if (self::$hasClientIpColumn !== null) {
+            return self::$hasClientIpColumn;
+        }
+        try {
+            $helper = new MySQLiHelper();
+            $rows = $helper->query(
+                "SHOW COLUMNS FROM `" . self::_getTableName() . "` LIKE 'client_ip'"
+            );
+            self::$hasClientIpColumn = is_array($rows) && count($rows) > 0;
+        } catch (\Throwable $e) {
+            self::$hasClientIpColumn = false;
+        }
+        return self::$hasClientIpColumn;
+    }
+
+    public static function resetClientIpColumnCache() {
+        self::$hasClientIpColumn = null;
+    }
+
+    /**
      * @param \Exception $ex
      * @throws \Exception
      */
@@ -78,16 +114,7 @@ class SystemLog extends BaseModelBase
     public static function createLog($type, $log) {
         $headerIpData = self::getHeaderIpData(true);
         $helper = new MySQLiHelper();
-        $helper->exec("INSERT INTO ".self::_getTableName()." (
-            `type`,
-            `server_name`,
-            `server_addr`,
-            `request_uri`,
-            `header_ip_data`,
-            `log`,
-            `creation_user_id`,
-            `creation_real_user_id`
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);", [
+        $params = [
             $type,
             isset($_SERVER["SERVER_NAME"]) ? $_SERVER["SERVER_NAME"] : null,
             isset($_SERVER["SERVER_ADDR"]) ? $_SERVER["SERVER_ADDR"] : null,
@@ -96,7 +123,32 @@ class SystemLog extends BaseModelBase
             $log,
             Auth::getUser() ? Auth::getUser()->id : null,
             Auth::getRealUser() ? Auth::getRealUser()->id : null
-        ]);
+        ];
+        if (self::hasClientIpColumn()) {
+            $params[] = self::getClientIp();
+            $helper->exec("INSERT INTO ".self::_getTableName()." (
+            `type`,
+            `server_name`,
+            `server_addr`,
+            `request_uri`,
+            `header_ip_data`,
+            `log`,
+            `creation_user_id`,
+            `creation_real_user_id`,
+            `client_ip`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", $params);
+        } else {
+            $helper->exec("INSERT INTO ".self::_getTableName()." (
+            `type`,
+            `server_name`,
+            `server_addr`,
+            `request_uri`,
+            `header_ip_data`,
+            `log`,
+            `creation_user_id`,
+            `creation_real_user_id`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);", $params);
+        }
     }
 
     public static function createLoginLog($username, $result) {

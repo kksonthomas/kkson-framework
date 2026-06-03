@@ -213,10 +213,10 @@ HTML;
                 }
             } else {
 //                $_SESSION['msg'] = "Username or password invalid";
-                $ipData = SystemLog::getHeaderIpData(true);
-                $ip = reset($ipData);
+                $ip = SystemLog::getClientIp();
                 $failCount = null;
                 if($ip) {
+                    App::updateIpLoginFailedBanStatus($ip);
                     $failCount = App::checkIpLoginFailedCount($ip);
                 }
 

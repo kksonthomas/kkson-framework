@@ -149,23 +149,17 @@ class App
         if(App::isCli()) {
             return false;
         }
-        $ipData = SystemLog::getHeaderIpData(true);
-        $ip = reset($ipData);
+        $ip = SystemLog::getClientIp();
         if(!$ip) {
             throw new \Exception("Unknown Client Ip Address");
         }
 
-        $bannedIpList = BanIpList::getBannedIpList($ip);
-        if($bannedIpList) {
-            return $bannedIpList;
-        }
-        return self::updateIpLoginFailedBanStatus($ip);
+        return BanIpList::getBannedIpList($ip) ?: false;
     }
 
     public static function updateIpLoginFailedBanStatus($ip = null) {
         if(!$ip) {
-            $ipData = SystemLog::getHeaderIpData(true);
-            $ip = reset($ipData);
+            $ip = SystemLog::getClientIp();
         }
 
         if($ip) {
@@ -183,7 +177,16 @@ class App
     }
 
     public static function getIpLastLoginSucceedDate($ip) {
-        return R::getCell("SELECT creation_date FROM system_log WHERE `type`= ? AND header_ip_data LIKE ? ORDER BY id DESC LIMIT 1", [SystemLog::TYPE_LOGIN, "%$ip%"]);
+        if (SystemLog::hasClientIpColumn()) {
+            return R::getCell(
+                "SELECT creation_date FROM system_log WHERE `type`= ? AND (client_ip = ? OR (client_ip IS NULL AND header_ip_data LIKE ?)) ORDER BY id DESC LIMIT 1",
+                [SystemLog::TYPE_LOGIN, $ip, "%$ip%"]
+            );
+        }
+        return R::getCell(
+            "SELECT creation_date FROM system_log WHERE `type`= ? AND header_ip_data LIKE ? ORDER BY id DESC LIMIT 1",
+            [SystemLog::TYPE_LOGIN, "%$ip%"]
+        );
     }
 
     public static function checkIpLoginFailedCount($ip) {
@@ -211,9 +214,13 @@ class App
         $date = max($lastUnbannedDate, $generalCheckRangeDate, $lastLoginSuccessDate)->format("Y-m-d H:i:s");
 
 
-        $failCountSql = "SELECT COUNT(*) FROM system_log WHERE `type` = 'LOGIN_FAILED' AND header_ip_data LIKE ? AND creation_date > ?";
-        $failCountData = ["%$ip%", $date];
-
+        if (SystemLog::hasClientIpColumn()) {
+            $failCountSql = "SELECT COUNT(*) FROM system_log WHERE `type` = 'LOGIN_FAILED' AND creation_date > ? AND (client_ip = ? OR (client_ip IS NULL AND header_ip_data LIKE ?))";
+            $failCountData = [$date, $ip, "%$ip%"];
+        } else {
+            $failCountSql = "SELECT COUNT(*) FROM system_log WHERE `type` = 'LOGIN_FAILED' AND header_ip_data LIKE ? AND creation_date > ?";
+            $failCountData = ["%$ip%", $date];
+        }
 
         $failCount = R::getCell($failCountSql, $failCountData) - 0;
         return $failCount;

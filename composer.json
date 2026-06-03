@@ -8,8 +8,12 @@
             "email": "kksonthomas@gmail.com"
         }
     ],
+    "bin": [
+        "bin/patch-v0.10.4.1-ip-ban-db"
+    ],
     "scripts": {
-        "test": "phpunit --bootstrap phpunit_bootstrap.php --no-configuration src",
+        "test": "phpunit --bootstrap phpunit_bootstrap.php tests",
+        "patch-ip-ban-db": "@php bin/patch-v0.10.4.1-ip-ban-db",
         "example-server": "@php -S localhost:3000",
         "test-php-cs-fixer": "php-cs-fixer fix example.php"
     },

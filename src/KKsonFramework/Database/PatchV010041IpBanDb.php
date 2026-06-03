@@ -49,7 +49,10 @@ class PatchV010041IpBanDb
 
     private function ensureTableExists(string $table): void
     {
-        $rows = $this->helper->query("SHOW TABLES LIKE ?", [$table]);
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
+            throw new \InvalidArgumentException("Invalid table name: {$table}");
+        }
+        $rows = $this->helper->query("SHOW TABLES LIKE '{$table}'");
         if (!is_array($rows) || count($rows) === 0) {
             throw new \RuntimeException("Required table `$table` does not exist.");
         }

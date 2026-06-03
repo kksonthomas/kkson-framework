@@ -19,6 +19,11 @@ class AppConfig extends ConfigBase
         return static::$instances[$calledClass];
     }
 
+    public static function set(self $instance): void
+    {
+        static::$instances[get_called_class()] = $instance;
+    }
+
     public function __construct($configDir = "conf/")
     {   
         parent::__construct(static::APP_CONFIG_FILENAME, $configDir);

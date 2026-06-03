@@ -39,16 +39,19 @@ class MySQLiHelper
             throw new \Exception("Prepare failed: (" . $this->mysqli->errno . ") " . $this->mysqli->error);
         }
 
+        $types = "";
         $params = [""];
         foreach ($data as &$d) {
-            $params[0].= "s";
-            if(is_float($d)) {
-                $params[0] .= "d";
-            } else if(is_int($d)) {
-                $params[0] .= "i";
+            if (is_int($d)) {
+                $types .= "i";
+            } elseif (is_float($d)) {
+                $types .= "d";
+            } else {
+                $types .= "s";
             }
             $params[] = &$d;
         }
+        $params[0] = $types;
 
         if(!empty($data)) {
             if (!call_user_func_array([$stmt, 'bind_param'], $params)) {
@@ -76,7 +79,7 @@ class MySQLiHelper
                     $stmt->close();
                     return $res;
                 } else {
-                    $result = $res->fetch_all();
+                    $result = $res->fetch_all(MYSQLI_ASSOC);
                     $res->close();
                     $stmt->close();
                     return $result;

@@ -9,11 +9,11 @@
         }
     ],
     "bin": [
-        "bin/patch-v0.10.4.1-ip-ban-db"
+        "bin/patch-v0.10.4.1-ip-ban-db.php"
     ],
     "scripts": {
         "test": "phpunit --bootstrap phpunit_bootstrap.php tests",
-        "patch-ip-ban-db": "@php bin/patch-v0.10.4.1-ip-ban-db",
+        "patch-ip-ban-db": "@php bin/patch-v0.10.4.1-ip-ban-db.php",
         "example-server": "@php -S localhost:3000",
         "test-php-cs-fixer": "php-cs-fixer fix example.php"
     },

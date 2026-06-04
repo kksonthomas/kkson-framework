@@ -32,3 +32,35 @@ mysql -u USER -p DATABASE < vendor/kksonthomas/kkson-framework/sql/patch-v0.10.4
 The script adds `system_log.client_ip`, backfills simple JSON array rows, and creates indexes. Skip it if you do not need indexed IP lookups; the app remains fully functional.
 
 On re-run, ignore duplicate column or duplicate index errors. Requires `system_log` and `ban_ip_list` tables.
+
+## Soft delete (mimic delete)
+
+Models can soft-delete by setting `_deleted = 1` instead of removing rows. Enable on a `BaseModelBase` subclass:
+
+```php
+public static function _enabledMimicDelete() {
+    return true;
+}
+```
+
+The table must have an integer `_deleted` column (0 = active, 1 = deleted).
+
+### Loading
+
+- `Model::load($id)` — active rows only (`_deleted = 0`).
+- `Model::load($id, true)` — includes soft-deleted rows.
+- `Model::loadForUpdate($id)` — same filter as `load()`; use `loadForUpdate($id, true)` to lock a deleted row.
+- `Model::isActiveInDb()` — re-reads `_deleted` from the database for long-running jobs.
+
+### Saving and concurrency
+
+`R::store()` runs the FUSE `update()` hook on boxed models. For mimic-delete tables, `BaseModelBase::update()` rejects a **stale revive**: the database row is soft-deleted (`_deleted = 1`) while the in-memory bean still has `_deleted = 0`. This prevents cross-request/cron races from undoing a delete after `deleteSelf()` or CRUD delete.
+
+- Restore a row with `undeleteSelf()` or `save(allowReviveDeleted: true)`.
+- Otherwise catch `KKsonFramework\RedBeanPHP\Exception\StaleDeletedModelException` and skip the write (typical for background jobs).
+
+Subclasses that override `update()` **must** call `parent::update()` first so the guard runs.
+
+### CRUD transactions
+
+`KKsonCRUD::setIsInsertUpdateUseTransaction(true)` wraps **one HTTP request** (insert/update/delete). It does not cover CLI, cron, or a second concurrent request. Long jobs should re-check `isActiveInDb()` before saving or handle `StaleDeletedModelException`.

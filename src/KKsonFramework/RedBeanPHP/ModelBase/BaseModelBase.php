@@ -3,6 +3,7 @@
 namespace KKsonFramework\RedBeanPHP\ModelBase;
 
 use KKsonFramework\Auth\Auth;
+use KKsonFramework\RedBeanPHP\Exception\StaleDeletedModelException;
 use KKsonFramework\Utils\Cache;
 use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
@@ -28,6 +29,11 @@ abstract class BaseModelBase extends SimpleModel
      * @var Cache
      */
     private $cache;
+
+    /**
+     * Allows undeleteSelf() / save(true) to set _deleted=0 when DB row is soft-deleted.
+     */
+    private bool $allowReviveDeleted = false;
 
     public function __construct()
     {
@@ -90,11 +96,18 @@ abstract class BaseModelBase extends SimpleModel
 
     }
 
-    public function save() {
-        return R::store($this);
+    public function save(bool $allowReviveDeleted = false) {
+        $this->allowReviveDeleted = $allowReviveDeleted;
+        try {
+            return R::store($this);
+        } finally {
+            $this->allowReviveDeleted = false;
+        }
     }
 
     public function update() {
+        $this->assertMimicDeleteWritable();
+
         $this->tempID = $this->id;
         
         $user = Auth::getUser();
@@ -182,8 +195,62 @@ abstract class BaseModelBase extends SimpleModel
     public function undeleteSelf() {
         if(static::_enabledMimicDelete()) {
             $this->_deleted = 0;
-            R::store($this);
+            $this->allowReviveDeleted = true;
+            try {
+                R::store($this);
+            } finally {
+                $this->allowReviveDeleted = false;
+            }
         }
+    }
+
+    /**
+     * When mimic delete is enabled, re-reads _deleted from the database for this id.
+     */
+    public function isActiveInDb(): bool
+    {
+        if (!static::_enabledMimicDelete() || $this->id <= 0) {
+            return true;
+        }
+
+        $dbDeleted = R::getCell(
+            "SELECT `_deleted` FROM `" . static::_getTableName() . "` WHERE id = ?",
+            [$this->id]
+        );
+
+        return $dbDeleted !== null && (int) $dbDeleted === 0;
+    }
+
+    /**
+     * Rejects stale revive: DB row soft-deleted while in-memory bean still has _deleted=0.
+     */
+    protected function assertMimicDeleteWritable(): void
+    {
+        if (!static::_enabledMimicDelete() || $this->id <= 0) {
+            return;
+        }
+
+        $table = static::_getTableName();
+        $dbDeleted = R::getCell(
+            "SELECT `_deleted` FROM `{$table}` WHERE id = ?",
+            [$this->id]
+        );
+
+        if ($dbDeleted === null) {
+            throw new StaleDeletedModelException($table, (int) $this->id, "Row no longer exists.");
+        }
+
+        if (static::isStaleMimicDeleteRevive((int) $dbDeleted, (int) ($this->_deleted ?? 0), $this->allowReviveDeleted)) {
+            throw new StaleDeletedModelException($table, (int) $this->id);
+        }
+    }
+
+    /**
+     * True when DB row is soft-deleted but the in-memory bean still looks active.
+     */
+    protected static function isStaleMimicDeleteRevive(int $dbDeleted, int $beanDeleted, bool $allowReviveDeleted): bool
+    {
+        return $dbDeleted === 1 && $beanDeleted === 0 && !$allowReviveDeleted;
     }
 
     public function trash()
@@ -254,12 +321,16 @@ abstract class BaseModelBase extends SimpleModel
 
     /**
      * @param int $id
+     * @param bool $findDeleted
      * @return static|null
      */
-    public static function loadForUpdate($id) {
+    public static function loadForUpdate($id, $findDeleted = false) {
         $bean = R::loadForUpdate(static::_getTableName(), $id);
 
         if($bean && $bean->id != 0) {
+            if (static::_enabledMimicDelete() && !$findDeleted && (int) $bean->_deleted === 1) {
+                return null;
+            }
             return $bean->box();
         } else {
             return null;

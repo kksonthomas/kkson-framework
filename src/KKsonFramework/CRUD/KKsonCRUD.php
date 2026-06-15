@@ -3,6 +3,7 @@
 namespace KKsonFramework\CRUD;
 
 use Exception;
+use KKsonFramework\App\DB;
 use KKsonFramework\RedBeanPHP\ModelBase\BaseModelBase;
 use League\Plates\Engine;
 use KKsonFramework\CRUD\Exception\BeanNotNullException;
@@ -236,7 +237,7 @@ class KKsonCRUD
     /**
      * @var bool
      */
-    protected $isInsertUpdateUseTransaction = false;
+    protected $isInsertUpdateUseTransaction = true;
 
     protected $actionButtonType = "button";
     protected $actionButtonName = "Action";
@@ -1391,7 +1392,7 @@ HTML;
     public function insertBean($data)
     {
         if($this->isInsertUpdateUseTransaction) {
-            R::begin();
+            DB::begin();
         }
         try {
             $bean = R::xdispense($this->tableName);
@@ -1411,16 +1412,16 @@ HTML;
 
             if($this->isInsertUpdateUseTransaction) {
                 if($result->ok) {
-                    R::commit();
+                    DB::commit();
                 } else {
-                    R::rollback();
+                    DB::rollback();
                 }
             }
     
             return $result;
         } catch (\Exception $ex) {
             if($this->isInsertUpdateUseTransaction) {
-                R::rollback();
+                DB::rollback();
             }
             throw $ex;
         }        
@@ -1571,7 +1572,7 @@ HTML;
     public function updateBean($data)
     {
         if($this->isInsertUpdateUseTransaction) {
-            R::begin();
+            DB::begin();
         }
         try {
             if ($this->currentBean ==null) {
@@ -1592,16 +1593,16 @@ HTML;
 
             if($this->isInsertUpdateUseTransaction) {
                 if($result->ok) {
-                    R::commit();
+                    DB::commit();
                 } else {
-                    R::rollback();
+                    DB::rollback();
                 }
             }
     
             return $result;
         } catch (\Exception $ex) {
             if($this->isInsertUpdateUseTransaction) {
-                R::rollback();
+                DB::rollback();
             }
             throw $ex;
         }
@@ -1797,7 +1798,7 @@ HTML;
 
         try {
             if($this->isInsertUpdateUseTransaction) {
-                R::begin();
+                DB::begin();
             }
 
             if ($this->currentBean) {
@@ -1820,12 +1821,12 @@ HTML;
             $result->msg = "刪除成功";
 
             if($this->isInsertUpdateUseTransaction) {
-                R::commit();
+                DB::commit();
             }
 
         } catch (\Exception $ex) {
             if($this->isInsertUpdateUseTransaction) {
-                R::rollback();
+                DB::rollback();
             }
             $result->ok = false;
             $result->class = "danger";

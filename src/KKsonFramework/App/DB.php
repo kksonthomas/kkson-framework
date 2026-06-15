@@ -53,4 +53,34 @@ class DB
     {
         R::exec("SET FOREIGN_KEY_CHECKS=".($b ? 1 : 0).";");
     }
+
+    public static function begin(): bool
+    {
+        return R::begin();
+    }
+
+    public static function commit(): bool
+    {
+        return R::commit();
+    }
+
+    public static function rollback(): void
+    {
+        R::rollback();
+        R::getWriter()->flushCache();
+    }
+
+    /**
+     * @param callable $callback
+     * @return mixed
+     */
+    public static function transaction(callable $callback)
+    {
+        try {
+            return R::transaction($callback);
+        } catch (\Throwable $ex) {
+            R::getWriter()->flushCache();
+            throw $ex;
+        }
+    }
 }

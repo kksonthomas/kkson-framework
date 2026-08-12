@@ -34,6 +34,11 @@ class CKEditor extends FieldType
         </div>
 HTML;
 
+        if (!$crud->getData("ckeditorScriptQueued")) {
+            $crud->addBodyEndExternalJs("/vendor/kksonthomas/kkson-framework/lib/ckeditor5/ckeditor.js");
+            $crud->setData("ckeditorScriptQueued", true);
+        }
+
         $fullFeatures = ($this->fullFeatures) ? "true" : "false";
         $crud->addJavaScriptCode(<<< JS
         $(document).ready(function () {

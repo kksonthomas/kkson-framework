@@ -23,8 +23,7 @@ $title = !empty($crud->getData("title")) ? $crud->getData("title") : ($header ? 
 
     <title><?=$title ?></title>
 
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&amp;display=fallback">
+    <link rel="stylesheet" href="/vendor/kksonthomas/kkson-framework/css/source-sans-pro.css">
     <link rel="stylesheet" href="/vendor/fortawesome/font-awesome/css/font-awesome.min.css">
 
     <link rel="stylesheet" href="/vendor/almasaeed2010/adminlte/plugins/daterangepicker/daterangepicker.css">
@@ -164,7 +163,6 @@ $title = !empty($crud->getData("title")) ? $crud->getData("title") : ($header ? 
 <script src="/vendor/almasaeed2010/adminlte/plugins/daterangepicker/daterangepicker.js"></script>
 <script src="/vendor/almasaeed2010/adminlte/plugins/sweetalert2/sweetalert2.all.min.js"></script>
 <script src="/vendor/almasaeed2010/adminlte/plugins/toastr/toastr.min.js"></script>
-<script src="/vendor/kksonthomas/kkson-framework/lib/ckeditor5/ckeditor.js"></script>
 
 <script src="/vendor/kksonthomas/kkson-framework/lib/datatables/datatables.min.js?v=1"></script>
 

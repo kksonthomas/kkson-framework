@@ -1,0 +1,41 @@
+dbfile2.db
+
+### Composer
+composer.phar
+vendor/
+composer.lock
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# JetBrains / IDE
+*.iml
+.idea/
+.idea_modules/
+/out/
+.atlassian-ide-plugin.xml
+.vscode/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+
+js/*.map
+*.map
+
+/bin
+conf/*.ini
+conf/*.json
+conf/mcp-mysql.env
+~*.xlsx
+
+node_modules/
+/data/
+.codegraph/daemon.pid

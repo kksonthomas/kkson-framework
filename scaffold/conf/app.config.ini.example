@@ -1,0 +1,11 @@
+[app]
+# env selects db.config.{env}.ini (e.g. uat -> db.config.uat.ini)
+env = uat
+backend = on
+frontend = on
+
+backend_base_url = "localhost/backend"
+frontend_base_url = "localhost"
+
+[display]
+app_name = "Your App"

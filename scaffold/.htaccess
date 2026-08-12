@@ -1,0 +1,13 @@
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^backend backend.php [QSA,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^api api.php [QSA,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]
+
+<Files ~ "\.json">
+  Order allow,deny
+  Deny from all
+</Files>

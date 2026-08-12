@@ -5,13 +5,30 @@ PHP admin/CRUD framework built on Slim 2, RedBeanPHP, Plates, and AdminLTE. Incl
 ## Installation
 
 ```bash
-composer require kksonthomas/kkson-framework
+composer require kksonthomas/kkson-framework:^0.11
 ```
 
-Add configuration under your application `conf/` directory:
+**New blank project:** copy the packaged scaffold, configure `conf/`, and import the greenfield SQL. Step-by-step: [docs/getting-started.md](docs/getting-started.md).
+
+```bash
+# After composer require in an empty project directory:
+# Windows: Copy-Item -Recurse vendor\kksonthomas\kkson-framework\scaffold\* .
+# bash:    cp -a vendor/kksonthomas/kkson-framework/scaffold/. .
+mysql -u USER -p DATABASE < vendor/kksonthomas/kkson-framework/sql/0000_init_framework.sql
+```
+
+| Material | Path |
+|----------|------|
+| Getting started | [docs/getting-started.md](docs/getting-started.md) |
+| Blank app scaffold | [scaffold/](scaffold/) |
+| Greenfield DB init | [sql/0000_init_framework.sql](sql/0000_init_framework.sql) |
+
+Add configuration under your application `conf/` directory (scaffold ships `.example` files):
 
 - `app.config.ini` — environment and app settings (`env` selects the DB config file)
 - `db.config.{env}.ini` — database connection
+
+Default seed login after init SQL: `sysadmin` / `sysadmin` (change after first login). New databases use the init file only; existing DBs missing `system_log.client_ip` still use [sql/patch-v0.10.4.1-ip-ban.sql](sql/patch-v0.10.4.1-ip-ban.sql).
 
 ## Database transactions and Writer Cache (v0.11.0.0+)
 
@@ -63,7 +80,7 @@ Custom code that still uses `R::begin()` / `R::rollback()` directly should switc
 
 Updating the package improves IP ban behavior without any database change. Unauthenticated requests only check existing bans; failed-login counting runs after a failed login.
 
-For faster queries on large `system_log` tables, apply the optional SQL patch once:
+For faster queries on large `system_log` tables **on databases created before the greenfield init**, apply the optional SQL patch once:
 
 ```text
 vendor/kksonthomas/kkson-framework/sql/patch-v0.10.4.1-ip-ban.sql
@@ -75,7 +92,7 @@ Example:
 mysql -u USER -p DATABASE < vendor/kksonthomas/kkson-framework/sql/patch-v0.10.4.1-ip-ban.sql
 ```
 
-The script adds `system_log.client_ip`, backfills simple JSON array rows, and creates indexes. Skip it if you do not need indexed IP lookups; the app remains fully functional.
+The script adds `system_log.client_ip`, backfills simple JSON array rows, and creates indexes. Skip it if you do not need indexed IP lookups, or if the database was created with [sql/0000_init_framework.sql](sql/0000_init_framework.sql) (already includes `client_ip` and indexes). The app remains fully functional either way.
 
 On re-run, ignore duplicate column or duplicate index errors. Requires `system_log` and `ban_ip_list` tables.
 

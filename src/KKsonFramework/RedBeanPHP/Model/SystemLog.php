@@ -50,13 +50,20 @@ class SystemLog extends BaseModelBase
 
     /**
      * Client IP using the same header priority as getHeaderIpData(true).
+     * Splits comma-separated proxy chains and returns the first valid IPv4/IPv6 address.
      *
      * @return string|null
      */
     public static function getClientIp() {
-        $ipData = self::getHeaderIpData(true);
-        $ip = reset($ipData);
-        return $ip ? $ip : null;
+        foreach (self::getHeaderIpData(true) as $headerValue) {
+            foreach (explode(",", (string)$headerValue) as $candidate) {
+                $candidate = trim($candidate);
+                if ($candidate !== "" && filter_var($candidate, FILTER_VALIDATE_IP)) {
+                    return $candidate;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -109,45 +116,56 @@ class SystemLog extends BaseModelBase
     /**
      * @param $type
      * @param $log
-     * @throws \Exception
      */
     public static function createLog($type, $log) {
-        $headerIpData = self::getHeaderIpData(true);
-        $helper = new MySQLiHelper();
-        $params = [
-            $type,
-            isset($_SERVER["SERVER_NAME"]) ? $_SERVER["SERVER_NAME"] : null,
-            isset($_SERVER["SERVER_ADDR"]) ? $_SERVER["SERVER_ADDR"] : null,
-            isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : null,
-            json_encode($headerIpData),
-            $log,
-            Auth::getUser() ? Auth::getUser()->id : null,
-            Auth::getRealUser() ? Auth::getRealUser()->id : null
-        ];
-        if (self::hasClientIpColumn()) {
-            $params[] = self::getClientIp();
-            $helper->exec("INSERT INTO ".self::_getTableName()." (
-            `type`,
-            `server_name`,
-            `server_addr`,
-            `request_uri`,
-            `header_ip_data`,
-            `log`,
-            `creation_user_id`,
-            `creation_real_user_id`,
-            `client_ip`
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", $params);
-        } else {
-            $helper->exec("INSERT INTO ".self::_getTableName()." (
-            `type`,
-            `server_name`,
-            `server_addr`,
-            `request_uri`,
-            `header_ip_data`,
-            `log`,
-            `creation_user_id`,
-            `creation_real_user_id`
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);", $params);
+        try {
+            $headerIpData = self::getHeaderIpData(true);
+            $helper = new MySQLiHelper();
+            $requestUri = isset($_SERVER["REQUEST_URI"]) ? $_SERVER["REQUEST_URI"] : null;
+            if ($requestUri !== null && mb_strlen($requestUri) > 1000) {
+                $requestUri = mb_substr($requestUri, 0, 1000);
+            }
+            $params = [
+                $type,
+                isset($_SERVER["SERVER_NAME"]) ? $_SERVER["SERVER_NAME"] : null,
+                isset($_SERVER["SERVER_ADDR"]) ? $_SERVER["SERVER_ADDR"] : null,
+                $requestUri,
+                json_encode($headerIpData),
+                $log,
+                Auth::getUser() ? Auth::getUser()->id : null,
+                Auth::getRealUser() ? Auth::getRealUser()->id : null
+            ];
+            if (self::hasClientIpColumn()) {
+                $clientIp = self::getClientIp();
+                if ($clientIp !== null && strlen($clientIp) > 45) {
+                    $clientIp = substr($clientIp, 0, 45);
+                }
+                $params[] = $clientIp;
+                $helper->exec("INSERT INTO ".self::_getTableName()." (
+                `type`,
+                `server_name`,
+                `server_addr`,
+                `request_uri`,
+                `header_ip_data`,
+                `log`,
+                `creation_user_id`,
+                `creation_real_user_id`,
+                `client_ip`
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", $params);
+            } else {
+                $helper->exec("INSERT INTO ".self::_getTableName()." (
+                `type`,
+                `server_name`,
+                `server_addr`,
+                `request_uri`,
+                `header_ip_data`,
+                `log`,
+                `creation_user_id`,
+                `creation_real_user_id`
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);", $params);
+            }
+        } catch (\Throwable $e) {
+            error_log("SystemLog::createLog failed: " . $e->getMessage());
         }
     }
 

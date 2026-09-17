@@ -109,7 +109,11 @@ abstract class BaseModelBase extends SimpleModel
         $this->assertMimicDeleteWritable();
 
         $this->tempID = $this->id;
-        
+
+        if (!static::_enabledAuditFields()) {
+            return;
+        }
+
         $user = Auth::getUser();
         
         if ($this->id == 0) {
@@ -181,6 +185,15 @@ abstract class BaseModelBase extends SimpleModel
 
     public static function _enabledMimicDelete() {
         return false;
+    }
+
+    /**
+     * When false, FUSE update() does not assign creation_date, creation_user_id,
+     * modified_date, or modified_user_id. Default true so existing models keep
+     * current behaviour. Independent of _enabledMimicDelete().
+     */
+    public static function _enabledAuditFields(): bool {
+        return true;
     }
 
     public function deleteSelf() {

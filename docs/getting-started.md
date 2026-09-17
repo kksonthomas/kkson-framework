@@ -106,3 +106,4 @@ Use the scaffold files as the reference implementation.
 - [Database transactions and Writer Cache (v0.11+)](../README.md#database-transactions-and-writer-cache-v011000)
 - [IP ban performance (v0.10.4.1+)](../README.md#ip-ban-performance-v01041)
 - [Soft delete (mimic delete)](../README.md#soft-delete-mimic-delete)
+- [Audit fields (v0.11.2.0+)](../README.md#audit-fields-v01120)

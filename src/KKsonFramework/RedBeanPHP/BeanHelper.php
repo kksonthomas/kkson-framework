@@ -36,6 +36,17 @@ class BeanHelper extends SimpleFacadeBeanHelper
         return false;
     }
 
+    /**
+     * Unmapped tables keep audit UI (default true), matching _enabledAuditFields().
+     */
+    public static function isCurrentTableEnabledAuditFields(KKsonCRUD $crud) {
+        $modelName = self::getModelNameFromTableName($crud->getTableName());
+        if($modelName) {
+            return (bool) call_user_func([$modelName, "_enabledAuditFields"]);
+        }
+        return true;
+    }
+
     public function getModelForBean(OODBBean $bean)
     {
         $mapList = self::$mapList;

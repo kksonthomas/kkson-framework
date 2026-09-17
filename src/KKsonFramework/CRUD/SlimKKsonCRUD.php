@@ -10,6 +10,7 @@ use KKsonFramework\Classes\Slim\Slim;
 use KKsonFramework\Utils\UrlUtils;
 use Stringy\Stringy;
 use KKsonFramework\CRUD\FieldType\ReadOnlyUsernameField;
+use KKsonFramework\RedBeanPHP\BeanHelper;
 
 class SlimKKsonCRUD extends KKsonCRUD
 {
@@ -281,11 +282,13 @@ HTML;
         $this->setExportName("匯出Excel");
         $this->setActionButtonName("動作");
     
-        $this->field("creation_date")->setDisplayName("新增日期")->setDisabled(true)->setReadOnly(true);
-        $this->field("creation_user_id")->setDisplayName("新增用戶")->setFieldType(new ReadOnlyUsernameField())->setDisabled(true)->setReadOnly(true);
-        $this->field("modified_date")->setDisplayName("最後修改日期")->setDisabled(true)->setReadOnly(true);
-        $this->field("modified_user_id")->setDisplayName("最後修改用戶")->setFieldType(new ReadOnlyUsernameField())->setDisabled(true)->setReadOnly(true);
-    
+        if (BeanHelper::isCurrentTableEnabledAuditFields($this)) {
+            $this->field("creation_date")->setDisplayName("新增日期")->setDisabled(true)->setReadOnly(true);
+            $this->field("creation_user_id")->setDisplayName("新增用戶")->setFieldType(new ReadOnlyUsernameField())->setDisabled(true)->setReadOnly(true);
+            $this->field("modified_date")->setDisplayName("最後修改日期")->setDisabled(true)->setReadOnly(true);
+            $this->field("modified_user_id")->setDisplayName("最後修改用戶")->setFieldType(new ReadOnlyUsernameField())->setDisabled(true)->setReadOnly(true);
+        }
+
         $this->field("_deleted")->setDisplayName("*已刪除*")->hide();
     }
 

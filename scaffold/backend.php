@@ -85,10 +85,12 @@ $crud->config(function () use ($crud) {
         return $headerButtonHTML;
     });
 
-    $crud->field("creation_date")->setSearchable(false);
-    $crud->field("creation_user_id")->setSearchable(false);
-    $crud->field("modified_date")->setSearchable(false);
-    $crud->field("modified_user_id")->setSearchable(false);
+    if (AppBeanHelper::isCurrentTableEnabledAuditFields($crud)) {
+        $crud->field("creation_date")->setSearchable(false);
+        $crud->field("creation_user_id")->setSearchable(false);
+        $crud->field("modified_date")->setSearchable(false);
+        $crud->field("modified_user_id")->setSearchable(false);
+    }
 });
 
 $slim->add(new PrettyExceptions());

@@ -127,3 +127,22 @@ Subclasses that override `update()` **must** call `parent::update()` first so th
 ### CRUD transactions
 
 CRUD insert, update, and delete are transactional by default (see [Database transactions and Writer Cache (v0.11.0.0+)](#database-transactions-and-writer-cache-v011000)). This wraps **one HTTP request** only; it does not cover CLI, cron, or a second concurrent request. Long jobs should re-check `isActiveInDb()` before saving or handle `StaleDeletedModelException`.
+
+## Audit fields (v0.11.2.0+)
+
+`BaseModelBase` assigns `creation_date`, `creation_user_id`, `modified_date`, and `modified_user_id` on every `R::store()` / `save()`. That is the default. High-volume fact tables that do not have these columns can opt out:
+
+```php
+public static function _enabledAuditFields(): bool
+{
+    return false;
+}
+```
+
+Default is `true`, so existing models keep current behaviour. This flag is independent of `_enabledMimicDelete()` / `_deleted`: a table can have audit and no soft-delete (the usual case), or neither.
+
+When the flag is false, FUSE `update()` still runs mimic-delete checks and `tempID` bookkeeping, but it does not assign the four properties. Do **not** call `parent::update()` and then `unset()` the columns — that still writes them onto the bean first, which errors under a frozen schema and **re-creates the columns** if freeze is off.
+
+Ship the framework version that contains this flag **before** (or in the same window as) `ALTER TABLE ... DROP` of those columns. Never drop them while `update()` still assigns the properties.
+
+CRUD list UI registers the four fields only when the table’s model has audit enabled (`BeanHelper::isCurrentTableEnabledAuditFields()`). Unmapped CRUD tables keep the current audit widgets.

@@ -5,3 +5,5 @@
 *.ini
 composer.lock
 .cursor/rules/codegraph.mdc
+.cursor/mcp.json
+.codegraph/daemon.pid

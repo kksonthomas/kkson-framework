@@ -28,7 +28,6 @@
         "bootstrap-select/bootstrap-select": "1.12.*",
         "moment/moment": "^2.29.3",
         "electrolinux/phpquery": "0.9.6",
-        "phpmailer/phpmailer": "v5.2.14",
         "php-curl-class/php-curl-class": "4.10.0",
         "league/route": "2.*.*",
         "respect/validation": "1.1.14",

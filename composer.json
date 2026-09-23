@@ -24,7 +24,7 @@
         "phpoffice/phpspreadsheet": "^1.23.0",
         "greenlion/php-sql-parser": "4.*",
         "ircmaxell/password-compat" : "1.0.*",
-        "voku/stringy": "^6.5.3",
+        "voku/stringy": "^7.0",
         "bootstrap-select/bootstrap-select": "1.12.*",
         "moment/moment": "^2.29.3",
         "electrolinux/phpquery": "0.9.6",

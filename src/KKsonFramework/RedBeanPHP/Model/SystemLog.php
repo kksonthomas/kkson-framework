@@ -4,6 +4,7 @@ namespace KKsonFramework\RedBeanPHP\Model;
 
 use KKsonFramework\App\MySQLiHelper;
 use KKsonFramework\Auth\Auth;
+use KKsonFramework\Conf\AppConfig;
 use KKsonFramework\RedBeanPHP\ModelBase\BaseModelBase;
 use Slim\Exception\Stop;
 
@@ -183,6 +184,9 @@ class SystemLog extends BaseModelBase
     }
 
     public static function createAccessLog($log = []) {
+        if (!AppConfig::get()->accessLog()) {
+            return;
+        }
         if(php_sapi_name() != "cli") {
             self::createLog(self::TYPE_ACCESS, json_encode($log));
         }

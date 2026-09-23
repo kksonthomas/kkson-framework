@@ -3,6 +3,8 @@
 env = uat
 backend = on
 frontend = on
+# access_log = off   ; skip TYPE_ACCESS rows (default on)
+access_log = on
 
 backend_base_url = "localhost/backend"
 frontend_base_url = "localhost"

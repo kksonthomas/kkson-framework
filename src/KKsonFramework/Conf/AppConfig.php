@@ -55,4 +55,8 @@ class AppConfig extends ConfigBase
     public function displayError() : bool {
         return @($this->getConfigSection("app")["display_error"]) ?? true;
     }
+
+    public function accessLog() : bool {
+        return @($this->getConfigSection("app")["access_log"]) ?? true;
+    }
 }
